@@ -1,14 +1,21 @@
-import { useState } from 'react'
-import React from 'react'
 
+import React from 'react'
+import {createBrowserRouter as Router , Routes , Route} from 'react-router-dom'
+import Compiler from './Pages/Compiler'
+import Landing from './Pages/Landing'
 
 function App() {
-  const [count, setCount] = useState(0)
+  
 
   return (
-    <>
-  <div className='bg-black text-white p-10 text-5xl'>Hi there!</div>
-    </>
+  <Router>
+    <Routes>
+      <Route path="/app" element={<Compiler/>} >
+        <Route path="home" element={<Landing/>} />
+      </Route>
+    </Routes>
+  </Router>
+
   )
 }
 
