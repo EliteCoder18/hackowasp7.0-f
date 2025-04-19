@@ -41,7 +41,7 @@ function ContactSupport() {
       </motion.div>
 
       {/* Main Content */}
-      <div className="relative mx-auto px-6 py-16 container">
+      <div className="relative mx-auto px-6 pt-6 pb-36 container">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
