@@ -13,7 +13,7 @@ import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import AdbIcon from '@mui/icons-material/Adb';
 
-const pages = ['Home', 'About', 'Contact', "Feedback"];
+const pages = ['Home', 'About', 'Contact', "Feedback", "Register-Asset"];
 const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
 
 function ResponsiveAppBar() {
@@ -138,7 +138,7 @@ function ResponsiveAppBar() {
               textDecoration: 'none',
             }}
           >
-            RAREBLOCKS
+            PROOFNEST
           </Typography>
 
           {/* Desktop menu links */}

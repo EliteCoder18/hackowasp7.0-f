@@ -1,27 +1,130 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { AuthClient } from '@dfinity/auth-client';
+import { Actor, HttpAgent } from '@dfinity/agent';
 
 // Base URL for the backend API
 const API_BASE_URL = 'http://localhost:8000';
+// ICP host URL
+const ICP_HOST = 'https://identity.ic0.app';
+
+// Global auth state
+const AuthContext = React.createContext();
+
+const useAuth = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [identity, setIdentity] = useState(null);
+  const [principal, setPrincipal] = useState(null);
+  const [authClient, setAuthClient] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const initAuth = async () => {
+      try {
+        const client = await AuthClient.create();
+        setAuthClient(client);
+        
+        const isLoggedIn = await client.isAuthenticated();
+        setIsAuthenticated(isLoggedIn);
+        
+        if (isLoggedIn) {
+          const currentIdentity = client.getIdentity();
+          setIdentity(currentIdentity);
+          setPrincipal(currentIdentity.getPrincipal().toString());
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    initAuth();
+  }, []);
+
+  const login = async () => {
+    if (!authClient) return;
+    
+    await authClient.login({
+      identityProvider: ICP_HOST,
+      onSuccess: () => {
+        setIsAuthenticated(true);
+        const currentIdentity = authClient.getIdentity();
+        setIdentity(currentIdentity);
+        setPrincipal(currentIdentity.getPrincipal().toString());
+      },
+    });
+  };
+
+  const logout = async () => {
+    if (!authClient) return;
+    
+    await authClient.logout();
+    setIsAuthenticated(false);
+    setIdentity(null);
+    setPrincipal(null);
+  };
+
+  return {
+    isAuthenticated,
+    login,
+    logout,
+    identity,
+    principal,
+    isLoading
+  };
+};
 
 const Register = () => {
   const [file, setFile] = useState(null);
   const [message, setMessage] = useState('');
   const [hash, setHash] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [fileBuffer, setFileBuffer] = useState(null);
+  const { isAuthenticated, login, principal, isLoading } = useAuth();
+
+  const readFileAsBuffer = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        resolve(reader.result);
+      };
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(file);
+    });
+  };
+
+  const handleFileChange = async (e) => {
+    const selectedFile = e.target.files[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      try {
+        const buffer = await readFileAsBuffer(selectedFile);
+        setFileBuffer(buffer);
+      } catch (error) {
+        console.error('Error reading file:', error);
+      }
+    }
+  };
 
   const handleRegister = async () => {
+    if (!isAuthenticated) {
+      setMessage('Please login with Internet Identity first');
+      return;
+    }
+
     if (!file) {
       setMessage('Please upload a file.');
       return;
     }
 
     setIsUploading(true);
-    setMessage('Registering file...');
+    setMessage('Registering file on the blockchain...');
 
     try {
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('principal', principal);
 
       const response = await axios.post(`${API_BASE_URL}/register`, formData, {
         headers: {
@@ -30,7 +133,7 @@ const Register = () => {
       });
 
       setHash(response.data.hash);
-      setMessage(`File registered successfully!`);
+      setMessage(`File registered successfully on the blockchain!`);
     } catch (error) {
       console.error('Registration error:', error);
       
@@ -51,23 +154,54 @@ const Register = () => {
     setMessage('Hash copied to clipboard');
   };
 
+  if (isLoading) {
+    return <div className="text-center py-4">Loading authentication...</div>;
+  }
+
   return (
     <div className="bg-white p-6 rounded shadow">
       <h2 className="text-2xl mb-4">Register File</h2>
+      
+      {!isAuthenticated ? (
+        <div className="mb-6">
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded mb-4">
+            <p className="text-yellow-700">
+              Login with Internet Identity is required to register files on the blockchain.
+            </p>
+          </div>
+          <button
+            onClick={login}
+            className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded w-full hover:from-purple-500 hover:to-blue-600"
+          >
+            Login with Internet Identity
+          </button>
+        </div>
+      ) : (
+        <div className="mb-2">
+          <div className="p-3 bg-green-50 border border-green-200 rounded mb-4 flex items-center">
+            <svg className="h-5 w-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+            <span className="text-green-700">Logged in with Internet Identity</span>
+          </div>
+        </div>
+      )}
+      
       <div className="mb-4">
         <input
           type="file"
-          onChange={(e) => setFile(e.target.files[0])}
+          onChange={handleFileChange}
           className="mb-4 w-full p-2 border rounded"
+          disabled={!isAuthenticated}
         />
         <button
           onClick={handleRegister}
-          disabled={isUploading || !file}
+          disabled={isUploading || !file || !isAuthenticated}
           className={`bg-blue-500 text-white px-4 py-2 rounded w-full ${
-            (isUploading || !file) ? 'opacity-50 cursor-not-allowed' : ''
+            (isUploading || !file || !isAuthenticated) ? 'opacity-50 cursor-not-allowed' : ''
           }`}
         >
-          {isUploading ? 'Registering...' : 'Register'}
+          {isUploading ? 'Registering on blockchain...' : 'Register'}
         </button>
       </div>
       
@@ -96,17 +230,30 @@ const Verify = () => {
   const [file, setFile] = useState(null);
   const [result, setResult] = useState(null);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [verifyMethod, setVerifyMethod] = useState('hash'); // 'hash' or 'file'
+  const [verifyMethod, setVerifyMethod] = useState('hash');
+  const [fileContent, setFileContent] = useState(null);
+  const { isAuthenticated } = useAuth();
 
   const handleVerifyHash = async () => {
     if (!hash.trim()) return;
     
     setIsVerifying(true);
     setResult(null);
+    setFileContent(null);
     
     try {
-      const response = await axios.post(`${API_BASE_URL}/verify`, { hash });
+      const response = await axios.post(`${API_BASE_URL}/verify`, { 
+        hash,
+        fetchContent: true // Request file content from blockchain
+      });
+      
       setResult(response.data);
+      
+      // If file content was returned from the blockchain
+      if (response.data.fileContent) {
+        setFileContent(response.data.fileContent);
+      }
+      
     } catch (error) {
       console.error('Verification error:', error);
       if (error.response?.status === 404) {
@@ -170,6 +317,38 @@ const Verify = () => {
     if (!timestamp) return 'Unknown';
     const date = new Date(Number(timestamp) / 1000000); // Convert to milliseconds
     return date.toLocaleString();
+  };
+
+  const renderFilePreview = () => {
+    if (!fileContent) return null;
+    
+    const contentType = result.contentType || 'application/octet-stream';
+    const isImage = contentType.startsWith('image/');
+    const isText = contentType.startsWith('text/');
+    const isPdf = contentType === 'application/pdf';
+    
+    // Convert the binary data to the appropriate format
+    const blob = new Blob([fileContent], { type: contentType });
+    const url = URL.createObjectURL(blob);
+    
+    return (
+      <div className="mt-4 p-2 border rounded">
+        <h3 className="font-bold mb-2">File Preview:</h3>
+        <div className="bg-gray-100 p-2 rounded">
+          {isImage && <img src={url} alt="File preview" className="max-w-full max-h-64 mx-auto" />}
+          {isPdf && <embed src={url} type="application/pdf" width="100%" height="400px" />}
+          {isText && <pre className="bg-gray-800 text-white p-4 rounded overflow-auto max-h-80">{new TextDecoder().decode(fileContent)}</pre>}
+          {!isImage && !isText && !isPdf && (
+            <div className="text-center">
+              <p>File preview not available</p>
+              <a href={url} download={result.filename || "download"} className="text-blue-500 underline mt-2 inline-block">
+                Download File
+              </a>
+            </div>
+          )}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -261,43 +440,69 @@ const Verify = () => {
           )}
         </div>
       )}
+      {result && result.verified && fileContent && renderFilePreview()}
     </div>
   );
 };
 
 const App = () => {
   const [activeTab, setActiveTab] = useState('register');
+  const auth = useAuth();
 
   return (
-    <div className="container mx-auto p-4 max-w-2xl">
-      <h1 className="text-3xl font-bold mb-6 text-center">ProofNest</h1>
-      <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
-        <div className="flex border-b">
-          <button
-            className={`flex-1 px-4 py-3 text-center font-medium ${
-              activeTab === 'register' ? 'bg-blue-500 text-white' : 'bg-gray-100'
-            }`}
-            onClick={() => setActiveTab('register')}
-          >
-            Register
-          </button>
-          <button
-            className={`flex-1 px-4 py-3 text-center font-medium ${
-              activeTab === 'verify' ? 'bg-blue-500 text-white' : 'bg-gray-100'
-            }`}
-            onClick={() => setActiveTab('verify')}
-          >
-            Verify
-          </button>
+    <AuthContext.Provider value={auth}>
+      <div className="container mx-auto p-4 max-w-2xl">
+        <h1 className="text-3xl font-bold mb-6 text-center">ProofNest</h1>
+        
+        {/* Authentication Status Bar */}
+        <div className="mb-4 flex justify-between items-center">
+          <div className="text-sm">
+            {auth.isLoading ? (
+              <span className="text-gray-500">Loading...</span>
+            ) : auth.isAuthenticated ? (
+              <span className="text-green-600">✓ Logged in as: {auth.principal?.substring(0, 10)}...</span>
+            ) : (
+              <span className="text-yellow-600">Not logged in</span>
+            )}
+          </div>
+          {auth.isAuthenticated && (
+            <button 
+              onClick={auth.logout}
+              className="text-sm text-gray-600 hover:text-gray-800"
+            >
+              Logout
+            </button>
+          )}
         </div>
-        <div className="p-6">
-          {activeTab === 'register' ? <Register /> : <Verify />}
+        
+        <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+          <div className="flex border-b">
+            <button
+              className={`flex-1 px-4 py-3 text-center font-medium ${
+                activeTab === 'register' ? 'bg-blue-500 text-white' : 'bg-gray-100'
+              }`}
+              onClick={() => setActiveTab('register')}
+            >
+              Register
+            </button>
+            <button
+              className={`flex-1 px-4 py-3 text-center font-medium ${
+                activeTab === 'verify' ? 'bg-blue-500 text-white' : 'bg-gray-100'
+              }`}
+              onClick={() => setActiveTab('verify')}
+            >
+              Verify
+            </button>
+          </div>
+          <div className="p-6">
+            {activeTab === 'register' ? <Register /> : <Verify />}
+          </div>
+        </div>
+        <div className="text-center text-gray-600 text-sm">
+          &copy; {new Date().getFullYear()} ProofNest - Blockchain Content Verification
         </div>
       </div>
-      <div className="text-center text-gray-600 text-sm">
-        &copy; {new Date().getFullYear()} ProofNest - Blockchain Content Verification
-      </div>
-    </div>
+    </AuthContext.Provider>
   );
 };
 

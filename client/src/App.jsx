@@ -14,11 +14,11 @@ function App() {
   <Router>
     <Routes>
     <Route path="/home" element={<Landing/>} />
-      <Route path="/" element={<Compiler/>} >
+      <Route path="/" element={<Compiler/>}  >
         <Route path="about" element={<About/>} />
         <Route path="feedback" element={<Feedback/>} />
         <Route path="contact" element={<ContactSupport/>} />
-        <Route path="copyright" element={<CopyRight/>} />
+        <Route path="register-asset" element={<CopyRight/>} />
       </Route>
     </Routes>
   </Router>
@@ -27,3 +27,4 @@ function App() {
 }
 
 export default App
+

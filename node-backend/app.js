@@ -40,12 +40,18 @@ const createActor = async () => {
   // Based on your Candid interface
   const idlFactory = ({ IDL }) => {
     return IDL.Service({
-      'register_hash': IDL.Func([IDL.Text], [], []),
+      'register_hash': IDL.Func([
+        IDL.Text, // hash
+        IDL.Vec(IDL.Nat8), // file bytes
+        IDL.Text // content type
+      ], [], []),
       'get_hash_info': IDL.Func(
         [IDL.Text], 
         [IDL.Opt(IDL.Record({
           'user': IDL.Principal,
-          'timestamp': IDL.Nat64
+          'timestamp': IDL.Nat64,
+          'content': IDL.Opt(IDL.Vec(IDL.Nat8)),
+          'contentType': IDL.Text
         }))], 
         ['query']
       )
@@ -65,6 +71,12 @@ app.post('/register', upload.single('file'), async (req, res) => {
       return res.status(400).json({ error: 'File is required' });
     }
     
+    // Get principal from request
+    const principal = req.body.principal;
+    if (!principal) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    
     // Calculate hash from file
     const hash = crypto.createHash('sha256')
       .update(req.file.buffer)
@@ -72,13 +84,18 @@ app.post('/register', upload.single('file'), async (req, res) => {
     
     console.log('Registering hash:', hash);
     console.log('Filename:', req.file.originalname);
+    console.log('Principal:', principal);
     
-    // Register with canister
+    // Register with canister, including file content
     const actor = await createActor();
-    await actor.register_hash(hash);
+    await actor.register_hash(
+      hash, 
+      [...new Uint8Array(req.file.buffer)], 
+      req.file.mimetype
+    );
     
     res.json({
-      message: 'Hash registered successfully',
+      message: 'Hash and file registered successfully on blockchain',
       hash,
       filename: req.file.originalname,
       fileType: req.file.mimetype
@@ -101,7 +118,7 @@ app.post('/register', upload.single('file'), async (req, res) => {
 // Verify hash endpoint
 app.post('/verify', express.json(), async (req, res) => {
   try {
-    const { hash } = req.body;
+    const { hash, fetchContent } = req.body;
     if (!hash) {
       return res.status(400).json({ error: 'Hash is required' });
     }
@@ -116,12 +133,20 @@ app.post('/verify', express.json(), async (req, res) => {
     
     if (result && result.length > 0 && result[0]) {
       // Successfully verified
-      res.json({
+      const response = {
         verified: true,
         user: result[0].user.toString(),
         timestamp: Number(result[0].timestamp),
         hash
-      });
+      };
+      
+      // Add content info if it exists and was requested
+      if (fetchContent && result[0].content && result[0].content.length > 0) {
+        response.fileContent = new Uint8Array(result[0].content[0]);
+        response.contentType = result[0].contentType;
+      }
+      
+      res.json(response);
     } else {
       // Hash not found
       res.status(404).json({ 
