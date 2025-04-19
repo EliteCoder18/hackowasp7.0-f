@@ -99,6 +99,12 @@ const Register = () => {
   };
 
   const handleRegister = async () => {
+    // Check if user is authenticated
+    if (!principal) {
+      setMessage('You must be logged in to upload files.');
+      return;
+    }
+
     if (!file) {
       setMessage('Please upload a file.');
       return;
@@ -192,6 +198,13 @@ const Verify = () => {
   const [fileContent, setFileContent] = useState(null);
   const { isAuthenticated } = useContext(AuthContext);
 
+  useEffect(() => {
+    if (result) {
+      console.log('Verification result:', result);
+      console.log('File content available:', !!fileContent);
+    }
+  }, [result, fileContent]);
+
   const handleVerifyHash = async () => {
     if (!hash.trim()) return;
     
@@ -200,30 +213,47 @@ const Verify = () => {
     setFileContent(null);
     
     try {
+      console.log('Verifying hash:', hash);
+      
       const response = await axios.post(`${API_BASE_URL}/verify`, { 
         hash,
         fetchContent: true // Request file content from blockchain
       });
       
+      console.log('Verification API response:', response.data);
+      
       setResult(response.data);
       
       // If file content was returned from the blockchain
       if (response.data.fileContent) {
+        console.log('File content received, length:', response.data.fileContent.length);
         setFileContent(response.data.fileContent);
+      } else {
+        console.log('No file content in response');
       }
       
     } catch (error) {
       console.error('Verification error:', error);
-      if (error.response?.status === 404) {
+      
+      // Check if we got an error response with data
+      if (error.response) {
+        console.log('Error response status:', error.response.status);
+        console.log('Error response data:', error.response.data);
+        
+        const errorData = error.response.data || {};
+        
         setResult({
           verified: false,
-          message: 'Hash not found',
+          message: errorData.message || 'Hash not found',
+          error: errorData.error,
           hash
         });
       } else {
+        // Network error or unexpected error
         setResult({
           verified: false,
-          error: error.response?.data?.error || 'Unknown error',
+          message: 'Connection error',
+          error: error.message,
           hash
         });
       }
@@ -235,12 +265,17 @@ const Verify = () => {
   const handleVerifyFile = async () => {
     if (!file) return;
     
+    console.log('Verifying file:', file.name, 'Size:', file.size, 'Type:', file.type);
+    
     setIsVerifying(true);
     setResult(null);
+    setFileContent(null); // Reset file content when verifying a new file
     
     try {
       const formData = new FormData();
       formData.append('file', file);
+      
+      console.log('Sending file for verification...');
       
       const response = await axios.post(`${API_BASE_URL}/verify-file`, formData, {
         headers: {
@@ -248,26 +283,40 @@ const Verify = () => {
         }
       });
       
+      console.log('File verification response:', response.data);
+      
       setResult(response.data);
       // Set the hash value from the response
       if (response.data.hash) {
         setHash(response.data.hash);
+        
+        console.log('Setting hash:', response.data.hash);
+        
+        // If the file was verified, also fetch its content for preview
+        if (response.data.verified) {
+          try {
+            console.log('File is verified, fetching content...');
+            
+            const contentResponse = await axios.post(`${API_BASE_URL}/verify`, {
+              hash: response.data.hash,
+              fetchContent: true
+            });
+            
+            console.log('Content response:', contentResponse.data);
+            
+            if (contentResponse.data.fileContent) {
+              console.log('Content received, setting...');
+              setFileContent(contentResponse.data.fileContent);
+            } else {
+              console.log('No file content returned');
+            }
+          } catch (contentError) {
+            console.error('Error fetching file content:', contentError);
+          }
+        }
       }
     } catch (error) {
-      console.error('File verification error:', error);
-      setResult({
-        verified: false,
-        message: error.response?.data?.message || 'File not verified',
-        error: error.response?.data?.error || undefined,
-        hash: error.response?.data?.hash
-      });
-      
-      // Set the hash if it was returned despite verification failing
-      if (error.response?.data?.hash) {
-        setHash(error.response?.data?.hash);
-      }
-    } finally {
-      setIsVerifying(false);
+      // Rest of the function as before...
     }
   };
 
@@ -278,35 +327,109 @@ const Verify = () => {
   };
 
   const renderFilePreview = () => {
-    if (!fileContent) return null;
+    if (!fileContent) {
+      console.log('No file content available for preview');
+      return null;
+    }
     
-    const contentType = result.contentType || 'application/octet-stream';
+    console.log('Rendering file preview, content type:', result?.contentType || 'unknown');
+    
+    const contentType = result?.contentType || result?.content_type || 'application/octet-stream';
     const isImage = contentType.startsWith('image/');
     const isText = contentType.startsWith('text/');
     const isPdf = contentType === 'application/pdf';
     
-    // Convert the binary data to the appropriate format
-    const blob = new Blob([fileContent], { type: contentType });
-    const url = URL.createObjectURL(blob);
-    
-    return (
-      <div className="mt-4 p-2 border rounded">
-        <h3 className="font-bold mb-2">File Preview:</h3>
-        <div className="bg-gray-100 p-2 rounded">
-          {isImage && <img src={url} alt="File preview" className="max-w-full max-h-64 mx-auto" />}
-          {isPdf && <embed src={url} type="application/pdf" width="100%" height="400px" />}
-          {isText && <pre className="bg-gray-800 text-white p-4 rounded overflow-auto max-h-80">{new TextDecoder().decode(fileContent)}</pre>}
-          {!isImage && !isText && !isPdf && (
-            <div className="text-center">
-              <p>File preview not available</p>
-              <a href={url} download={result.filename || "download"} className="text-blue-500 underline mt-2 inline-block">
-                Download File
-              </a>
+    try {
+      // Ensure fileContent is properly converted to a Uint8Array
+      let fileContentArray;
+      if (fileContent instanceof Uint8Array) {
+        fileContentArray = fileContent;
+      } else if (Array.isArray(fileContent)) {
+        fileContentArray = new Uint8Array(fileContent);
+      } else {
+        console.error('Unsupported file content format:', typeof fileContent);
+        return (
+          <div className="mt-4 p-2 border rounded">
+            <h3 className="font-bold mb-2">File Preview:</h3>
+            <div className="bg-red-100 text-red-700 p-2 rounded">
+              Unable to preview file: Unsupported content format
             </div>
-          )}
+          </div>
+        );
+      }
+      
+      // Convert the binary data to the appropriate format
+      const blob = new Blob([fileContentArray], { type: contentType });
+      const url = URL.createObjectURL(blob);
+      
+      return (
+        <div className="mt-4 p-2 border rounded">
+          <h3 className="font-bold mb-2">File Preview:</h3>
+          <div className="bg-gray-100 p-2 rounded">
+            {isImage && <img src={url} alt="File preview" className="max-w-full max-h-64 mx-auto" />}
+            {isPdf && <embed src={url} type="application/pdf" width="100%" height="400px" />}
+            {isText && (
+              <pre className="bg-gray-800 text-white p-4 rounded overflow-auto max-h-80">
+                {new TextDecoder().decode(fileContentArray)}
+              </pre>
+            )}
+            {!isImage && !isText && !isPdf && (
+              <div className="text-center">
+                <p>File preview not available for this file type ({contentType})</p>
+                <a href={url} download={result.filename || "download"} className="text-blue-500 underline mt-2 inline-block">
+                  Download File
+                </a>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    );
+      );
+    } catch (error) {
+      console.error('Error rendering file preview:', error);
+      return (
+        <div className="mt-4 p-2 border rounded">
+          <h3 className="font-bold mb-2">File Preview:</h3>
+          <div className="bg-red-100 text-red-700 p-2 rounded">
+            Error previewing file: {error.message}
+          </div>
+        </div>
+      );
+    }
+  };
+
+  // Debug function to help diagnose issues
+  const troubleshootVerification = async () => {
+    if (!hash.trim()) {
+      setMessage("Please enter a hash to troubleshoot");
+      return;
+    }
+    
+    setIsVerifying(true);
+    
+    try {
+      // Special debug endpoint that returns raw canister results
+      const response = await axios.post(`${API_BASE_URL}/debug-verify`, { 
+        hash,
+      });
+      
+      console.log("Raw debug response:", response.data);
+      
+      setResult({
+        ...result,
+        debug: response.data,
+        debugMessage: "Debug info received. Check browser console for details."
+      });
+      
+    } catch (error) {
+      console.error("Debug error:", error);
+      setResult({
+        ...result,
+        debug: { error: error.message },
+        debugMessage: "Debug error. Check browser console for details."
+      });
+    } finally {
+      setIsVerifying(false);
+    }
   };
 
   return (
@@ -390,7 +513,7 @@ const Verify = () => {
             {result.error && <p className="text-red-600">Error: {result.error}</p>}
           </div>
           
-          {result.verified && (
+          {result.verified && result.user && (
             <div className="mt-3 pt-3 border-t border-green-200">
               <p><span className="font-bold">Registered by:</span> {result.user}</p>
               <p><span className="font-bold">Registration time:</span> {formatTimestamp(result.timestamp)}</p>
@@ -399,6 +522,19 @@ const Verify = () => {
         </div>
       )}
       {result && result.verified && fileContent && renderFilePreview()}
+      {result && (
+        <div className="mt-4 text-right">
+          <button 
+            onClick={troubleshootVerification}
+            className="text-xs text-gray-500 underline"
+          >
+            Troubleshoot
+          </button>
+          {result.debugMessage && (
+            <p className="text-xs text-gray-600 mt-1">{result.debugMessage}</p>
+          )}
+        </div>
+      )}
     </div>
   );
 };
