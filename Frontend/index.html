@@ -138,7 +138,7 @@
 
       const handleVerify = async () => {
         try {
-          const response = await axios.post('http://localhost:8080/verify', { hash });
+          const response = await axios.post('http://localhost:8000/verify', { hash });
           setResult(response.data);
         } catch (error) {
           setResult({ error: error.response?.data?.error || 'Unknown error' });
