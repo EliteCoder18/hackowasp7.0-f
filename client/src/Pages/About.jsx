@@ -31,7 +31,7 @@ export default function AboutUs() {
   ];
 
   return (
-    <div className="relative bg-black min-h-screen mt-8 text-white">
+    <div className="relative bg-black min-h-screen  text-white">
       {/* Hero Section */}
       <motion.div 
         initial={{ opacity: 0 }}

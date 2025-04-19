@@ -9,7 +9,7 @@ function ContactSupport() {
   };
 
   return (
-    <div className="bg-white text-black mt-8 min-h-screen">
+    <div className="bg-white text-black  min-h-screen">
       {/* Hero Section */}
       <motion.div 
         initial={{ opacity: 0 }}
