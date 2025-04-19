@@ -8,8 +8,18 @@ const fetch = require('node-fetch');
 const cors = require('cors');
 
 const app = express();
-const upload = multer({ storage: multer.memoryStorage() });
 const PORT = 8000;
+
+// Set a file size limit to prevent canister overload
+const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB limit
+
+// Update multer configuration to enforce size limit
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: MAX_FILE_SIZE
+  }
+});
 
 // Enable CORS
 app.use(cors());
@@ -22,6 +32,19 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.sendStatus(204);
   next();
+});
+
+// Add error handling for multer file size errors
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).json({ 
+        error: 'File too large - maximum size is 2MB'
+      });
+    }
+    return res.status(400).json({ error: err.message });
+  }
+  next(err);
 });
 
 // Create the agent and interface
@@ -85,33 +108,40 @@ app.post('/register', upload.single('file'), async (req, res) => {
     console.log('Registering hash:', hash);
     console.log('Filename:', req.file.originalname);
     console.log('Principal:', principal);
+    console.log('File size:', req.file.size, 'bytes');
     
-    // Register with canister, including file content
-    const actor = await createActor();
-    await actor.register_hash(
-      hash, 
-      [...new Uint8Array(req.file.buffer)], 
-      req.file.mimetype
-    );
-    
-    res.json({
-      message: 'Hash and file registered successfully on blockchain',
-      hash,
-      filename: req.file.originalname,
-      fileType: req.file.mimetype
-    });
+    // Register with canister
+    try {
+      const actor = await createActor();
+      await actor.register_hash(
+        hash, 
+        [...new Uint8Array(req.file.buffer)], 
+        req.file.mimetype
+      );
+      
+      res.json({
+        message: 'Hash and file registered successfully on blockchain',
+        hash,
+        filename: req.file.originalname,
+        fileType: req.file.mimetype
+      });
+    } catch (canisterError) {
+      console.error('Canister error:', canisterError);
+      
+      if (canisterError.message && canisterError.message.includes('File too large')) {
+        return res.status(413).json({ error: 'File too large - maximum size is 2MB' });
+      } else if (canisterError.message && canisterError.message.includes('Hash already registered')) {
+        return res.status(409).json({ 
+          error: 'This file has already been registered',
+          hash
+        });
+      } else {
+        throw canisterError; // Re-throw to be caught by outer catch
+      }
+    }
   } catch (error) {
     console.error('Error registering hash:', error);
-    
-    // Check if it's already registered
-    if (error.message && error.message.includes('Hash already registered')) {
-      return res.status(409).json({ 
-        error: 'This file has already been registered',
-        hash: error.message.match(/hash: ([a-f0-9]+)/)?.[1] || null
-      });
-    }
-    
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message || 'Unknown error occurred' });
   }
 });
 

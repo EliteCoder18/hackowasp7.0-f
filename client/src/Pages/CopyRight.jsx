@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { AuthClient } from '@dfinity/auth-client';
 import { Actor, HttpAgent } from '@dfinity/agent';
+import { useNavigate } from 'react-router-dom';
 
 // Base URL for the backend API
 const API_BASE_URL = 'http://localhost:8000';
@@ -76,43 +77,28 @@ const useAuth = () => {
 };
 
 const Register = () => {
+  const { principal } = useContext(AuthContext);
   const [file, setFile] = useState(null);
   const [message, setMessage] = useState('');
   const [hash, setHash] = useState('');
   const [isUploading, setIsUploading] = useState(false);
-  const [fileBuffer, setFileBuffer] = useState(null);
-  const { isAuthenticated, login, principal, isLoading } = useAuth();
 
-  const readFileAsBuffer = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        resolve(reader.result);
-      };
-      reader.onerror = reject;
-      reader.readAsArrayBuffer(file);
-    });
-  };
-
-  const handleFileChange = async (e) => {
+  const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
-      setFile(selectedFile);
-      try {
-        const buffer = await readFileAsBuffer(selectedFile);
-        setFileBuffer(buffer);
-      } catch (error) {
-        console.error('Error reading file:', error);
+      // Check file size (2MB limit)
+      const maxSizeBytes = 2 * 1024 * 1024;
+      if (selectedFile.size > maxSizeBytes) {
+        setMessage('File size exceeds the 2MB limit. Please choose a smaller file.');
+        setFile(null);
+        e.target.value = null; // Reset the file input
+        return;
       }
+      setFile(selectedFile);
     }
   };
 
   const handleRegister = async () => {
-    if (!isAuthenticated) {
-      setMessage('Please login with Internet Identity first');
-      return;
-    }
-
     if (!file) {
       setMessage('Please upload a file.');
       return;
@@ -137,7 +123,9 @@ const Register = () => {
     } catch (error) {
       console.error('Registration error:', error);
       
-      if (error.response?.status === 409) {
+      if (error.response?.status === 413) {
+        setMessage('Error: File too large - maximum size is 2MB');
+      } else if (error.response?.status === 409) {
         // Already registered
         setHash(error.response.data.hash || '');
         setMessage(`This file is already registered.`);
@@ -154,51 +142,21 @@ const Register = () => {
     setMessage('Hash copied to clipboard');
   };
 
-  if (isLoading) {
-    return <div className="text-center py-4">Loading authentication...</div>;
-  }
-
   return (
     <div className="bg-white p-6 rounded shadow">
       <h2 className="text-2xl mb-4">Register File</h2>
-      
-      {!isAuthenticated ? (
-        <div className="mb-6">
-          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded mb-4">
-            <p className="text-yellow-700">
-              Login with Internet Identity is required to register files on the blockchain.
-            </p>
-          </div>
-          <button
-            onClick={login}
-            className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded w-full hover:from-purple-500 hover:to-blue-600"
-          >
-            Login with Internet Identity
-          </button>
-        </div>
-      ) : (
-        <div className="mb-2">
-          <div className="p-3 bg-green-50 border border-green-200 rounded mb-4 flex items-center">
-            <svg className="h-5 w-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-            </svg>
-            <span className="text-green-700">Logged in with Internet Identity</span>
-          </div>
-        </div>
-      )}
       
       <div className="mb-4">
         <input
           type="file"
           onChange={handleFileChange}
           className="mb-4 w-full p-2 border rounded"
-          disabled={!isAuthenticated}
         />
         <button
           onClick={handleRegister}
-          disabled={isUploading || !file || !isAuthenticated}
+          disabled={isUploading || !file}
           className={`bg-blue-500 text-white px-4 py-2 rounded w-full ${
-            (isUploading || !file || !isAuthenticated) ? 'opacity-50 cursor-not-allowed' : ''
+            (isUploading || !file) ? 'opacity-50 cursor-not-allowed' : ''
           }`}
         >
           {isUploading ? 'Registering on blockchain...' : 'Register'}
@@ -232,7 +190,7 @@ const Verify = () => {
   const [isVerifying, setIsVerifying] = useState(false);
   const [verifyMethod, setVerifyMethod] = useState('hash');
   const [fileContent, setFileContent] = useState(null);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated } = useContext(AuthContext);
 
   const handleVerifyHash = async () => {
     if (!hash.trim()) return;
@@ -445,63 +403,69 @@ const Verify = () => {
   );
 };
 
-const App = () => {
+const Copyright = () => {
   const [activeTab, setActiveTab] = useState('register');
+  const { isAuthenticated, principal, logout } = useContext(AuthContext);
+  const navigate = useNavigate();
+  
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
+  
+  return (
+    <div className="container mx-auto p-4 max-w-2xl">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">ProofNest</h1>
+        <div className="flex items-center">
+          <span className="mr-4 text-sm text-green-600">
+            Logged in as: {principal?.substring(0, 10)}...
+          </span>
+          <button 
+            onClick={handleLogout} 
+            className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1 rounded text-sm"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+      
+      <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+        <div className="flex border-b">
+          <button
+            className={`flex-1 px-4 py-3 text-center font-medium ${
+              activeTab === 'register' ? 'bg-blue-500 text-white' : 'bg-gray-100'
+            }`}
+            onClick={() => setActiveTab('register')}
+          >
+            Register
+          </button>
+          <button
+            className={`flex-1 px-4 py-3 text-center font-medium ${
+              activeTab === 'verify' ? 'bg-blue-500 text-white' : 'bg-gray-100'
+            }`}
+            onClick={() => setActiveTab('verify')}
+          >
+            Verify
+          </button>
+        </div>
+        <div className="p-6">
+          {activeTab === 'register' ? <Register /> : <Verify />}
+        </div>
+      </div>
+      <div className="text-center text-gray-600 text-sm">
+        &copy; {new Date().getFullYear()} ProofNest - Blockchain Content Verification
+      </div>
+    </div>
+  );
+};
+
+const App = () => {
   const auth = useAuth();
 
   return (
     <AuthContext.Provider value={auth}>
-      <div className="container mx-auto p-4 max-w-2xl">
-        <h1 className="text-3xl font-bold mb-6 text-center">ProofNest</h1>
-        
-        {/* Authentication Status Bar */}
-        <div className="mb-4 flex justify-between items-center">
-          <div className="text-sm">
-            {auth.isLoading ? (
-              <span className="text-gray-500">Loading...</span>
-            ) : auth.isAuthenticated ? (
-              <span className="text-green-600">✓ Logged in as: {auth.principal?.substring(0, 10)}...</span>
-            ) : (
-              <span className="text-yellow-600">Not logged in</span>
-            )}
-          </div>
-          {auth.isAuthenticated && (
-            <button 
-              onClick={auth.logout}
-              className="text-sm text-gray-600 hover:text-gray-800"
-            >
-              Logout
-            </button>
-          )}
-        </div>
-        
-        <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
-          <div className="flex border-b">
-            <button
-              className={`flex-1 px-4 py-3 text-center font-medium ${
-                activeTab === 'register' ? 'bg-blue-500 text-white' : 'bg-gray-100'
-              }`}
-              onClick={() => setActiveTab('register')}
-            >
-              Register
-            </button>
-            <button
-              className={`flex-1 px-4 py-3 text-center font-medium ${
-                activeTab === 'verify' ? 'bg-blue-500 text-white' : 'bg-gray-100'
-              }`}
-              onClick={() => setActiveTab('verify')}
-            >
-              Verify
-            </button>
-          </div>
-          <div className="p-6">
-            {activeTab === 'register' ? <Register /> : <Verify />}
-          </div>
-        </div>
-        <div className="text-center text-gray-600 text-sm">
-          &copy; {new Date().getFullYear()} ProofNest - Blockchain Content Verification
-        </div>
-      </div>
+      <Copyright />
     </AuthContext.Provider>
   );
 };
