@@ -9,7 +9,7 @@ function ContactSupport() {
   };
 
   return (
-    <div className="bg-white text-black  min-h-screen">
+    <div className="bg-black text-white min-h-screen">
       {/* Hero Section */}
       <motion.div 
         initial={{ opacity: 0 }}
@@ -46,7 +46,7 @@ function ContactSupport() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="bg-gray-900 shadow-2xl backdrop-blur-md mx-auto p-12 rounded-none max-w-4xl border border-gray-800"
+          className="bg-black shadow-2xl backdrop-blur-md mx-auto p-12 rounded-none max-w-4xl border border-gray-800"
         >
           <motion.p {...fadeIn} className="text-gray-300 text-lg mb-12 text-center">
             At <span className="font-bold text-white">Proofnest </span>, we value our community and strive to provide the best support possible. If you have any questions, issues, or need assistance, feel free to reach out to us.

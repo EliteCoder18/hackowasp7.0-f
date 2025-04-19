@@ -13,7 +13,7 @@ import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import AdbIcon from '@mui/icons-material/Adb';
 
-const pages = ['Products', 'Pricing', 'Blog'];
+const pages = ['Home', 'About', 'Contact', "Feedback"];
 const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
 
 function ResponsiveAppBar() {
@@ -109,7 +109,10 @@ function ResponsiveAppBar() {
               }}
             >
               {pages.map((page) => (
-                <MenuItem key={page} onClick={handleCloseNavMenu}>
+                <MenuItem key={page} onClick={()=>{
+                  handleCloseNavMenu();
+                 window.location.href =`/${page.toLowerCase()}`
+                }}>
                   <Typography sx={{ textAlign: 'center', color: 'white' }}>{page}</Typography>
                 </MenuItem>
               ))}
@@ -138,13 +141,18 @@ function ResponsiveAppBar() {
           </Typography>
 
           {/* Desktop menu links */}
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
+          <Box sx={{ flexGrow: 1 }} /> {/* This pushes the next Box to the right */}
+          <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
             {pages.map((page) => (
               <Button
                 key={page}
-                onClick={handleCloseNavMenu}
+                onClick={()=>{
+                  handleCloseNavMenu();
+                  window.location.href =`/${page.toLowerCase()}`
+                }}
                 sx={{ 
-                  my: 2, 
+                  my: 2.4, 
+                  mx: 3,
                   color: 'white', 
                   display: 'block',
                   '&:hover': {
@@ -158,49 +166,7 @@ function ResponsiveAppBar() {
           </Box>
 
           {/* User menu */}
-          <Box sx={{ flexGrow: 0 }}>
-            <Tooltip title="Open settings">
-              <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" sx={{ 
-                  border: '2px solid',
-                  borderColor: 'transparent',
-                  backgroundImage: 'linear-gradient(black, black), linear-gradient(to right, #4ade80, #3b82f6, #a855f7)',
-                  backgroundOrigin: 'border-box',
-                  backgroundClip: 'padding-box, border-box',
-                }} />
-              </IconButton>
-            </Tooltip>
-            <Menu
-              sx={{ 
-                mt: '45px',
-                '& .MuiPaper-root': {
-                  backgroundColor: '#111',
-                  color: 'white',
-                  border: '1px solid',
-                  borderImage: 'linear-gradient(to right, #4ade80, #3b82f6, #a855f7) 1',
-                }
-              }}
-              id="menu-appbar"
-              anchorEl={anchorElUser}
-              anchorOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-              }}
-              open={Boolean(anchorElUser)}
-              onClose={handleCloseUserMenu}
-            >
-              {settings.map((setting) => (
-                <MenuItem key={setting} onClick={handleCloseUserMenu}>
-                  <Typography sx={{ textAlign: 'center', color: 'white' }}>{setting}</Typography>
-                </MenuItem>
-              ))}
-            </Menu>
-          </Box>
+          
         </Toolbar>
       </Container>
     </AppBar>
