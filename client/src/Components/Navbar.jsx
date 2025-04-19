@@ -37,10 +37,11 @@ function ResponsiveAppBar() {
 
   return (
     <AppBar 
-      position="static" 
+      position="sticky" 
       sx={{ 
         bgcolor: 'black',
-        position: 'relative',
+        top: 0,
+        zIndex: 1100,
         '&::after': {
           content: '""',
           position: 'absolute',
