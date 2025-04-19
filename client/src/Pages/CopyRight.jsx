@@ -349,8 +349,49 @@ const Verify = () => {
 
   const formatTimestamp = (timestamp) => {
     if (!timestamp) return 'Unknown';
-    const date = new Date(Number(timestamp) / 1000000); // Convert to milliseconds
-    return date.toLocaleString();
+    
+    console.log('Raw timestamp received:', timestamp);
+    
+    // Handle different timestamp formats
+    let timestampMs;
+    
+    if (typeof timestamp === 'string') {
+      // If it's a string, parse it first
+      timestamp = Number(timestamp);
+    }
+    
+    if (timestamp > 1000000000000000) {
+      // Very large number in nanoseconds
+      timestampMs = Number(timestamp) / 1000000;
+      console.log('Converting from nanoseconds:', timestampMs);
+    } else if (timestamp > 1000000000000) {
+      // Already in milliseconds (from backend conversion)
+      timestampMs = timestamp;
+      console.log('Already in milliseconds:', timestampMs);
+    } else {
+      // Regular timestamp
+      timestampMs = timestamp;
+    }
+    
+    // Create a Date object and format it
+    const date = new Date(timestampMs);
+    
+    // Log the resulting date for debugging
+    console.log('Formatted date:', date.toString());
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return 'Invalid timestamp';
+    }
+    
+    // Format the date nicely
+    return date.toLocaleString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   const renderFilePreview = () => {
@@ -501,13 +542,16 @@ const Verify = () => {
       );
     }
 
-    // Verified result - showing only the name
+    // Verified result - showing name and timestamp
     if (result.verified) {
       return (
         <div className="mt-4 p-4 bg-green-100 border-l-4 border-green-500 rounded">
           <div className="font-bold text-green-700">✓ Content Verified</div>
           <div className="mt-2">
             <div className="text-xl font-semibold">{result.name}</div>
+            <div className="text-sm text-gray-600 mt-1">
+              Registered on: {formatTimestamp(result.timestamp)}
+            </div>
             
             {/* Download button if file content is available */}
             {fileContent && (

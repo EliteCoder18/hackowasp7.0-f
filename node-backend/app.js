@@ -125,7 +125,9 @@ const createActor = async () => {
           if (hashInfo && hashInfo.name) {
             // Store the name in a global variable
             global.__lastExtractedName = hashInfo.name;
-            console.log('Preserved name:', global.__lastExtractedName);
+            // Also store the timestamp for later use
+            global.__lastHashInfo = hashInfo;
+            console.log('Preserved name and timestamp:', global.__lastExtractedName, hashInfo.timestamp);
           }
         }
         
@@ -339,30 +341,39 @@ app.post('/verify', express.json(), async (req, res) => {
       if (registeredHash && registeredHash === hash) {
         console.log('Hash exists per registration test, verified hash:', registeredHash);
         
-        // Try to extract name from the original get_hash_info request if possible
-        let name = 'Unknown';
+        // Use the preserved name from global variable if available
+        const preservedName = global.__lastExtractedName || 'Unknown (file name not recovered)';
+        // Extract just the filename without path
+        const cleanName = preservedName.includes('/') || preservedName.includes('\\')
+          ? preservedName.split(/[\/\\]/).pop()
+          : preservedName;
+        console.log('Using preserved name for verification:', cleanName);
+
+        // Try to extract timestamp from original result if available in global variable
+        let originalTimestamp;
         try {
-          // Check if we have access to the original result
-          const origResult = lookupError && lookupError.data;
-          if (origResult) {
-            const origInfo = Array.isArray(origResult) && origResult.length > 0 ? origResult[0] : origResult;
-            if (origInfo && origInfo.name) {
-              name = origInfo.name;
-              console.log('Successfully extracted name from original lookup:', name);
-            }
+          // Check if we can access the timestamp from the original get_hash_info call
+          if (global.__lastHashInfo && global.__lastHashInfo.timestamp) {
+            // Convert from nanoseconds to milliseconds
+            originalTimestamp = typeof global.__lastHashInfo.timestamp === 'bigint'
+              ? Number(global.__lastHashInfo.timestamp / BigInt(1000000))
+              : typeof global.__lastHashInfo.timestamp === 'string'
+                ? Number(global.__lastHashInfo.timestamp) / 1000000
+                : null;
+            console.log('Retrieved original timestamp:', originalTimestamp);
           }
-        } catch (nameError) {
-          console.log('Error extracting name:', nameError.message);
+        } catch (timeError) {
+          console.log('Error extracting timestamp:', timeError.message);
         }
-        
+
         return res.json({
           verified: true,
           message: 'File content has been verified on the blockchain!',
           hash,
           filename: req.file.originalname,
-          name: name, // Use extracted name if possible
+          name: cleanName, // Use clean filename
           user: 'Unknown (recovered)',
-          timestamp: Date.now(),
+          timestamp: originalTimestamp || Date.now(), // Use extracted timestamp or current time
           verificationMethod: 'file'
         });
       }
@@ -542,6 +553,25 @@ app.post('/verify-file', upload.single('file'), async (req, res) => {
             : preservedName;
           console.log('Using preserved name for verification:', cleanName);
           
+          // Try to extract timestamp from original result if available in global variable
+          let originalTimestamp;
+          try {
+            // Check if we can access the timestamp from the original get_hash_info call
+            if (global.__lastHashInfo && global.__lastHashInfo.timestamp) {
+              // Convert from nanoseconds to milliseconds
+              originalTimestamp = typeof global.__lastHashInfo.timestamp === 'bigint'
+                ? Number(global.__lastHashInfo.timestamp / BigInt(1000000))
+                : typeof global.__lastHashInfo.timestamp === 'string'
+                  ? Number(global.__lastHashInfo.timestamp) / 1000000
+                  : null;
+              console.log('Retrieved original timestamp for verify-file:', originalTimestamp);
+            }
+          } catch (timeError) {
+            console.log('Error extracting timestamp in verify-file:', timeError.message);
+          }
+
+          console.log('Final timestamp being sent to frontend:', originalTimestamp);
+
           return res.json({
             verified: true,
             message: 'File content has been verified on the blockchain!',
@@ -549,7 +579,7 @@ app.post('/verify-file', upload.single('file'), async (req, res) => {
             filename: req.file.originalname,
             name: cleanName, // Use clean filename
             user: 'Unknown (recovered)',
-            timestamp: Date.now(),
+            timestamp: originalTimestamp || Date.now(), // Use extracted timestamp instead of undefined variable
             verificationMethod: 'file'
           });
         }
