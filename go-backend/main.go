@@ -22,6 +22,11 @@ type HashInfo struct {
 	Timestamp uint64              `ic:"timestamp"`
 }
 
+// Define a struct to handle the optional response
+type OptionalHashInfo struct {
+	HashInfo *HashInfo
+}
+
 func main() {
 	//Parse the url
 	hostURL, err := url.Parse("http://localhost:4943")
@@ -103,4 +108,54 @@ func main() {
 
 		c.JSON(http.StatusOK, gin.H{"message": "Hash registered successfully", "hash": hashString})
 	})
+
+	// Add this after the /register endpoint in your main.go file
+	r.POST("/verify", func(c *gin.Context) {
+		// Parse the request JSON body
+		var req struct {
+			Hash string `json:"hash"`
+		}
+
+		if err := c.BindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
+			return
+		}
+
+		if req.Hash == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Hash is required"})
+			return
+		}
+
+		fmt.Println("Verifying hash:", req.Hash)
+
+		// Call canister's get_hash_info method
+		var result = []any{&HashInfo{}} // Initialize with a pointer to receive the output
+		err = icAgent.Call(canisterID, "get_hash_info", []any{req.Hash}, result)
+		if err != nil {
+			fmt.Println("ERROR calling canister:", err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to verify hash: " + err.Error()})
+			return
+		}
+
+		// Extract the result - first check if we got something
+		if len(result) == 0 || result[0] == nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Hash not found"})
+			return
+		}
+
+		// Get the HashInfo from the result
+		hashInfo, ok := result[0].(*HashInfo)
+		if !ok || hashInfo == nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Hash not found"})
+			return
+		}
+
+		// Return the info
+		c.JSON(http.StatusOK, gin.H{
+			"user":      hashInfo.User.String(),
+			"timestamp": hashInfo.Timestamp,
+		})
+	})
+
+	r.Run(":8080")
 }
