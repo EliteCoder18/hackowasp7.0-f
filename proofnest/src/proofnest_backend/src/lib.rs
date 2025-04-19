@@ -4,22 +4,23 @@ use ic_cdk::{query, update};
 use std::cell::RefCell;
 use std::collections::HashMap;
 
-// Updated HashInfo to include file content
+// Updated HashInfo to include file content and name
 #[derive(CandidType, Deserialize, Clone)]
 struct HashInfo {
     user: Principal,
     timestamp: u64,
     content: Option<Vec<u8>>,
     content_type: String,
+    name: String, // Add this field
 }
 
 thread_local! {
     static HASH_MAP: RefCell<HashMap<String, HashInfo>> = RefCell::new(HashMap::new());
 }
 
-// Updated register_hash function to handle file content
+// Updated register_hash function to handle file content and name
 #[update]
-fn register_hash(hash: String, content: Vec<u8>, content_type: String) -> () {
+fn register_hash(hash: String, content: Vec<u8>, content_type: String, name: String) -> () {
     let caller = ic_cdk::caller();
     let timestamp = time();
     
@@ -35,7 +36,7 @@ fn register_hash(hash: String, content: Vec<u8>, content_type: String) -> () {
             ic_cdk::trap(&format!("Hash already registered: hash: {}", hash));
         }
         
-        // Store the hash info with content
+        // Store the hash info with content and name
         map.insert(
             hash.clone(), 
             HashInfo { 
@@ -43,6 +44,7 @@ fn register_hash(hash: String, content: Vec<u8>, content_type: String) -> () {
                 timestamp,
                 content: Some(content),
                 content_type,
+                name, // Add the name
             }
         );
     });
@@ -68,6 +70,7 @@ fn get_hash_metadata(hash: String) -> Option<HashInfo> {
             timestamp: info.timestamp,
             content: None, // Don't return the content
             content_type: info.content_type.clone(),
+            name: info.name.clone(), // Return the name
         })
     })
 }

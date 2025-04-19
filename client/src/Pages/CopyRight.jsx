@@ -82,6 +82,7 @@ const Register = () => {
   const [message, setMessage] = useState('');
   const [hash, setHash] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [fileName, setFileName] = useState('');
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -95,6 +96,7 @@ const Register = () => {
         return;
       }
       setFile(selectedFile);
+      setFileName(selectedFile.name);
     }
   };
 
@@ -117,6 +119,7 @@ const Register = () => {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('principal', principal);
+      formData.append('name', fileName); // Add the name to the form data
 
       const response = await axios.post(`${API_BASE_URL}/register`, formData, {
         headers: {
@@ -125,7 +128,7 @@ const Register = () => {
       });
 
       setHash(response.data.hash);
-      setMessage(`File registered successfully on the blockchain!`);
+      setMessage(`File "${fileName}" registered successfully on the blockchain!`);
     } catch (error) {
       console.error('Registration error:', error);
       
@@ -158,6 +161,18 @@ const Register = () => {
           onChange={handleFileChange}
           className="mb-4 w-full p-2 border rounded"
         />
+        
+        <div className="mb-4">
+          <label className="block text-gray-700 mb-2">File Name/Description:</label>
+          <input
+            type="text"
+            value={fileName}
+            onChange={(e) => setFileName(e.target.value)}
+            placeholder="Enter a name or description"
+            className="w-full p-2 border rounded"
+          />
+        </div>
+
         <button
           onClick={handleRegister}
           disabled={isUploading || !file}
@@ -277,46 +292,58 @@ const Verify = () => {
       
       console.log('Sending file for verification...');
       
+      // For better troubleshooting, add:
+      console.log('POST URL:', `${API_BASE_URL}/verify-file`);
+      
+      // Add timeout and additional options for more reliable uploads
       const response = await axios.post(`${API_BASE_URL}/verify-file`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
+        },
+        timeout: 60000, // Increase timeout to 60 seconds for larger files
+        onUploadProgress: (progressEvent) => {
+          console.log('Upload progress:', Math.round((progressEvent.loaded * 100) / progressEvent.total) + '%');
         }
       });
       
-      console.log('File verification response:', response.data);
+      console.log('File verification response received:', response.status);
+      console.log('File verification response data:', response.data);
       
       setResult(response.data);
       // Set the hash value from the response
       if (response.data.hash) {
         setHash(response.data.hash);
-        
-        console.log('Setting hash:', response.data.hash);
-        
-        // If the file was verified, also fetch its content for preview
-        if (response.data.verified) {
-          try {
-            console.log('File is verified, fetching content...');
-            
-            const contentResponse = await axios.post(`${API_BASE_URL}/verify`, {
-              hash: response.data.hash,
-              fetchContent: true
-            });
-            
-            console.log('Content response:', contentResponse.data);
-            
-            if (contentResponse.data.fileContent) {
-              console.log('Content received, setting...');
-              setFileContent(contentResponse.data.fileContent);
-            } else {
-              console.log('No file content returned');
-            }
-          } catch (contentError) {
-            console.error('Error fetching file content:', contentError);
-          }
-        }
       }
     } catch (error) {
-      // Rest of the function as before...
+      console.error('File verification error:', error);
+      // More detailed error logging
+      if (error.response) {
+        console.log('Error response status:', error.response.status);
+        console.log('Error response data:', error.response.data);
+        setResult({
+          verified: false,
+          message: error.response.data.message || 'Error verifying file',
+          error: error.response.data.error,
+          hash: error.response.data.hash
+        });
+      } else if (error.request) {
+        // Request was made but no response received
+        console.log('No response received:', error.request);
+        setResult({
+          verified: false,
+          message: 'No response from server. The file may be too large or the server may be unavailable.',
+          error: error.message
+        });
+      } else {
+        // Error in setting up the request
+        setResult({
+          verified: false,
+          message: 'Error preparing request',
+          error: error.message
+        });
+      }
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -397,6 +424,28 @@ const Verify = () => {
     }
   };
 
+  const handleDownload = () => {
+    if (!fileContent || !result) return;
+    
+    // Create a Uint8Array from the fileContent array
+    const uint8Array = new Uint8Array(fileContent);
+    const blob = new Blob([uint8Array], { type: result.contentType || 'application/octet-stream' });
+    
+    // Create a download link
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = result.name || 'downloaded-file';
+    document.body.appendChild(a);
+    a.click();
+    
+    // Clean up
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 0);
+  };
+
   // Debug function to help diagnose issues
   const troubleshootVerification = async () => {
     if (!hash.trim()) {
@@ -430,6 +479,61 @@ const Verify = () => {
     } finally {
       setIsVerifying(false);
     }
+  };
+
+  const renderVerificationResult = () => {
+    if (!result) return null;
+    
+    // Special handling for "Unknown" name and user - likely a false positive
+    // Skip this check if verification was done by file upload, which is more reliable
+    if (result.verified && 
+        result.verificationMethod !== 'file' && 
+        (result.name === 'Unknown (file name not recovered)' || result.name === 'Unknown') && 
+        (result.user === 'Unknown (recovered)' || result.user === 'Unknown')) {
+      
+      return (
+        <div className="mt-4 p-4 bg-yellow-100 border-l-4 border-yellow-500 rounded">
+          <div className="font-bold text-yellow-700">⚠️ Verification Unreliable</div>
+          <div className="mt-2">
+            <p>This content cannot be fully verified.</p>
+          </div>
+        </div>
+      );
+    }
+
+    // Verified result - showing only the name
+    if (result.verified) {
+      return (
+        <div className="mt-4 p-4 bg-green-100 border-l-4 border-green-500 rounded">
+          <div className="font-bold text-green-700">✓ Content Verified</div>
+          <div className="mt-2">
+            <div className="text-xl font-semibold">{result.name}</div>
+            
+            {/* Download button if file content is available */}
+            {fileContent && (
+              <div className="mt-2">
+                <button 
+                  onClick={handleDownload}
+                  className="bg-blue-500 text-white px-3 py-1 rounded text-sm"
+                >
+                  Download Original File
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+    
+    // Not verified result - keep simple
+    return (
+      <div className="mt-4 p-4 bg-red-100 border-l-4 border-red-500 rounded">
+        <div className="font-bold text-red-700">✗ Not Verified</div>
+        <div className="mt-2">
+          <div>{result.message || 'Content not found on the blockchain'}</div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -491,36 +595,7 @@ const Verify = () => {
         </div>
       )}
       
-      {result && (
-        <div className={`mt-6 p-4 rounded ${
-          result.verified ? 'bg-green-50 border border-green-100' : 'bg-red-50 border border-red-100'
-        }`}>
-          {result.hash && (
-            <p className="font-mono text-xs break-all mb-2">
-              <span className="font-bold">Hash:</span> {result.hash}
-            </p>
-          )}
-          {result.filename && (
-            <p className="mb-2">
-              <span className="font-bold">Filename:</span> {result.filename}
-            </p>
-          )}
-          <div className={result.verified ? "text-green-700" : "text-red-700"}>
-            <p className="text-lg font-bold">
-              {result.verified ? "✓ VERIFIED" : "✗ NOT VERIFIED"}
-            </p>
-            {result.message && <p>{result.message}</p>}
-            {result.error && <p className="text-red-600">Error: {result.error}</p>}
-          </div>
-          
-          {result.verified && result.user && (
-            <div className="mt-3 pt-3 border-t border-green-200">
-              <p><span className="font-bold">Registered by:</span> {result.user}</p>
-              <p><span className="font-bold">Registration time:</span> {formatTimestamp(result.timestamp)}</p>
-            </div>
-          )}
-        </div>
-      )}
+      {renderVerificationResult()}
       {result && result.verified && fileContent && renderFilePreview()}
       {result && (
         <div className="mt-4 text-right">
