@@ -461,12 +461,13 @@ app.post('/verify', express.json(), async (req, res) => {
         }
         
         // Any other errors should result in not verified
-        console.log('Hash verification failed: registration test failed for reasons other than hash existence');
+        console.log('Error during test registration, but not because hash exists');
         return res.status(404).json({
           verified: false,
-          message: 'Hash not found or verification error',
-          error: regError.message,
-          hash
+          message: 'No file registered with this hash on the blockchain',
+          hash,
+          filename: req.file.originalname,
+          error: regError.message
         });
       }
     } catch (error) {
@@ -575,9 +576,31 @@ app.post('/verify-file', upload.single('file'), async (req, res) => {
           } catch (innerLookupError) {
             // When the error happens, we already have the result
             if (innerLookupError.message && innerLookupError.message.includes('serialize a BigInt')) {
+              // Check if we actually have a result with content
+              if (!capturedResult || (Array.isArray(capturedResult) && capturedResult.length === 0)) {
+                console.log('Hash not found in blockchain (empty result)');
+                return res.status(404).json({
+                  verified: false,
+                  message: 'No file registered with this hash on the blockchain',
+                  hash,
+                  filename: req.file.originalname
+                });
+              }
+              
               const hashInfo = Array.isArray(capturedResult) && capturedResult.length > 0 
                 ? capturedResult[0] 
                 : capturedResult;
+              
+              // Only proceed if hashInfo is actually populated
+              if (!hashInfo) {
+                console.log('Hash info is empty');
+                return res.status(404).json({
+                  verified: false,
+                  message: 'No file registered with this hash on the blockchain',
+                  hash,
+                  filename: req.file.originalname
+                });
+              }
               
               // Extract the name from the captured result
               const name = hashInfo && hashInfo.name ? hashInfo.name : 'Unknown';
@@ -592,7 +615,7 @@ app.post('/verify-file', upload.single('file'), async (req, res) => {
                 message: 'File is verified on the blockchain',
                 hash,
                 filename: req.file.originalname,
-                name: name, // Use the extracted name
+                name: name,
                 verificationMethod: 'file'
               });
             } else {
@@ -689,15 +712,23 @@ app.post('/verify-file', upload.single('file'), async (req, res) => {
             verificationMethod: 'file'
           });
         }
+      } else {
+        console.log('Error during test registration, but not because hash exists');
+        return res.status(404).json({
+          verified: false,
+          message: 'No file registered with this hash on the blockchain',
+          hash,
+          filename: req.file?.originalname || 'unknown'
+        });
       }
     }
     
     // If we reach here without returning, the file wasn't verified
     return res.status(404).json({
       verified: false,
-      message: 'This file was not found on the blockchain.',
+      message: 'No file registered with this hash on the blockchain',
       hash,
-      filename: req.file.originalname
+      filename: req.file?.originalname || 'unknown'
     });
     
   } catch (error) {

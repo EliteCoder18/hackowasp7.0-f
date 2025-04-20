@@ -200,6 +200,35 @@ const VerifyPage = () => {
     console.log("Full verification result:", result); // Add this for debugging
     
     if (result.verified) {
+      // Simple check - if name is "Unknown", it's not really verified
+      if (result.name === 'Unknown') {
+        return (
+          <div className="mt-4 p-4 bg-red-100 border-l-4 border-red-500 rounded">
+            <div className="font-bold text-red-700">✗ Not Verified</div>
+            <div className="mt-2">
+              <div>This file is not registered on the blockchain.</div>
+              <div className="text-sm text-gray-600 mt-1">Hash: {result.hash}</div>
+            </div>
+          </div>
+        );
+      }
+      
+      // Proceed with normal verified display for actually verified files
+      const isLikelyUnverified = 
+        (result.name === 'Unknown' || !result.name) && 
+        (!result.timestamp || result.timestamp === Date.now());
+        
+      if (isLikelyUnverified) {
+        return (
+          <div className="mt-4 p-4 bg-red-100 border-l-4 border-red-500 rounded">
+            <div className="font-bold text-red-700">✗ Not Verified</div>
+            <div className="mt-2">
+              <div>This file does not appear to be registered on the blockchain.</div>
+            </div>
+          </div>
+        );
+      }
+      
       return (
         <div className="mt-4 p-4 bg-green-100 border-l-4 border-green-500 rounded">
           <div className="font-bold text-green-700">✓ Content Verified</div>
