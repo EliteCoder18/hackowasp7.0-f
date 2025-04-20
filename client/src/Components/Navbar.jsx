@@ -14,7 +14,7 @@ import MenuItem from '@mui/material/MenuItem';
 import AdbIcon from '@mui/icons-material/Adb';
 import { Link } from 'react-router-dom';
 
-const pages = ['Home', 'About', 'Contact', "Feedback", "Register-Asset"];
+const pages = ["Home",  "Register-Asset", "Files", "About", "Contact", "Verify"];
 const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
 
 function ResponsiveAppBar() {
@@ -112,8 +112,17 @@ function ResponsiveAppBar() {
             >
               {pages.map((page) => (
                 <MenuItem key={page} onClick={()=>{
-                  handleCloseNavMenu();
+                  if(page == "Verify"){
+                    console.log(page)
+                    window.location.href =`/verify`;
+                    handleCloseNavMenu();
+                  }
+                  else{
+                    console.log(page)
                  window.location.href =`/${page.toLowerCase()}`
+                 handleCloseNavMenu();
+                  }
+                  
                 }}>
                   <Typography sx={{ textAlign: 'center', color: 'white' }}>{page}</Typography>
                 </MenuItem>
@@ -149,8 +158,16 @@ function ResponsiveAppBar() {
               <Button
                 key={page}
                 onClick={()=>{
-                  handleCloseNavMenu();
-                  window.location.href =`/${page.toLowerCase()}`
+                  if(page == "Verify"){
+                    console.log(page)
+                    window.location.href =`/verify`;
+                    handleCloseNavMenu();
+                  }
+                  else{
+                    console.log(page)
+                 window.location.href =`/${page.toLowerCase()}`
+                 handleCloseNavMenu();
+                  }
                 }}
                 sx={{ 
                   my: 2.4, 
@@ -165,9 +182,6 @@ function ResponsiveAppBar() {
                 {page}
               </Button>
             ))}
-            <Link to="/files" className="...">
-              All Files
-            </Link>
           </Box>
 
           {/* User menu */}

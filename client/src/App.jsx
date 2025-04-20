@@ -9,6 +9,7 @@ import ContactSupport from './Pages/Contact';
 import Login from './Pages/Login';
 import Copyright from './Pages/CopyRight';
 import FilesList from './Pages/FilesList';
+import Verify from './Pages/Verify'
 
 // Context for authentication
 export const AuthContext = React.createContext();
@@ -94,23 +95,32 @@ function App() {
     <Router>
       <AuthProvider>
         <Routes>
-          <Route path="/login" element={<Login />} />
           <Route path="/home" element={<Landing />} />
           <Route path="/" element={<Compiler />}>
+          <Route path="login" element={<Login />} />
             <Route path="about" element={<About />} />
             <Route path="feedback" element={<Feedback />} />
             <Route path="contact" element={<ContactSupport />} />
-            <Route path="register-asset" element={<Copyright />} />
-          </Route>
+            <Route path='verify' element={<Verify />} />
+            <Route path="register-asset" element={
+              <ProtectedRoute>
+              <Copyright />
+              </ProtectedRoute>
+              } />
+            <Route path="files" element={
+              <ProtectedRoute>
+              <FilesList />
+              </ProtectedRoute>
+              } />
           <Route 
-            path="/copyright" 
+            path="copyright" 
             element={
               <ProtectedRoute>
                 <Copyright />
               </ProtectedRoute>
             } 
           />
-          <Route path="/files" element={<FilesList />} />
+          </Route>
           <Route path="/" element={<Navigate to="/login" />} />
         </Routes>
       </AuthProvider>

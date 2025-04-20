@@ -10,7 +10,7 @@ function Landing() {
   const navigate = useNavigate();
 
   const handleNavigate = () => {
-    navigate('/auth');
+    navigate('/login');
   };
 
   return (
