@@ -9,6 +9,7 @@ const FilesList = () => {
   const [error, setError] = useState(null);
   const [sortBy, setSortBy] = useState('timestamp');
   const [sortDirection, setSortDirection] = useState('desc');
+  const [iscopied , setIsCopied] = useState(false);
   
   // Add pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -184,8 +185,16 @@ const FilesList = () => {
                     <td className="px-4 py-2">{file.name}</td>
                     <td className="px-4 py-2">{formatDate(file.timestamp)}</td>
                     <td className="px-4 py-2">
-                      <span className="text-gray-600 truncate block" style={{maxWidth: "200px"}}>
+                      <span className="text-gray-600 truncate block" >
                         {file.hash}
+                        <button 
+                        onClick={()=> {
+                          navigator.clipboard.writeText(file.hash);
+                          setIsCopied(true);
+                        }}
+                         className='ml-2 text-blue-500 hover:text-blue-700'>
+                          Copy
+                        </button>
                       </span>
                     </td>
                     <td className="px-4 py-2">
