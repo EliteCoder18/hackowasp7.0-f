@@ -764,8 +764,23 @@ app.get('/download-file/:hash', async (req, res) => {
       return res.status(404).json({ error: 'File content not available' });
     }
     
-    // Convert the content to a Buffer
-    const content = Buffer.from(hashInfo.content);
+    // Properly extract content based on its structure
+    let fileBuffer;
+    if (Array.isArray(hashInfo.content)) {
+      if (hashInfo.content.length > 0 && hashInfo.content[0] instanceof Uint8Array) {
+        // Case: content is [Uint8Array]
+        fileBuffer = Buffer.from(hashInfo.content[0]);
+      } else {
+        // Case: content is already a flat array of numbers
+        fileBuffer = Buffer.from(hashInfo.content);
+      }
+    } else if (hashInfo.content instanceof Uint8Array) {
+      // Case: content is directly a Uint8Array
+      fileBuffer = Buffer.from(hashInfo.content);
+    } else {
+      console.error('Unknown content format:', typeof hashInfo.content);
+      return res.status(500).json({ error: 'Unable to process file content' });
+    }
     
     // Set the appropriate content type
     res.setHeader('Content-Type', hashInfo.content_type || 'application/octet-stream');
@@ -775,7 +790,7 @@ app.get('/download-file/:hash', async (req, res) => {
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     
     // Send the file
-    res.send(content);
+    res.send(fileBuffer);
   } catch (error) {
     console.error('Error downloading file:', error);
     res.status(500).json({ error: 'Failed to download file' });
