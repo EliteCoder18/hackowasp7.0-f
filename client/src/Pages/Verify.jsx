@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { FaFileAlt, FaCloudUploadAlt } from 'react-icons/fa';
+import { FaFileAlt, FaCloudUploadAlt, FaUserAlt, FaMoneyBillWave } from 'react-icons/fa';
 
 // Base URL for the backend API
 const API_BASE_URL = 'http://localhost:8000';
@@ -196,28 +196,56 @@ const VerifyPage = () => {
 
   const renderVerificationResult = () => {
     if (!result) return null;
-    if (result.verified && 
-        result.verificationMethod !== 'file' && 
-        (result.name === 'Unknown (file name not recovered)' || result.name === 'Unknown') && 
-        (result.user === 'Unknown (recovered)' || result.user === 'Unknown')) {
-      return (
-        <div className="mt-4 p-4 bg-yellow-100 border-l-4 border-yellow-500 rounded">
-          <div className="font-bold text-yellow-700">⚠️ Verification Unreliable</div>
-          <div className="mt-2">
-            <p>This content cannot be fully verified.</p>
-          </div>
-        </div>
-      );
-    }
+    
+    console.log("Full verification result:", result); // Add this for debugging
+    
     if (result.verified) {
       return (
         <div className="mt-4 p-4 bg-green-100 border-l-4 border-green-500 rounded">
           <div className="font-bold text-green-700">✓ Content Verified</div>
           <div className="mt-2">
             <div className="text-xl font-semibold">{result.name}</div>
+            
+            {/* Display verification method for debugging */}
+            <div className="text-xs text-gray-500 mt-1">
+              Verification method: {result.verificationMethod || 'unknown'}
+            </div>
+            
+            {/* Owner Information */}
+            {result.ownerName && (
+              <div className="mt-2 flex items-center text-gray-700">
+                <FaUserAlt className="mr-2" />
+                <span className="font-medium">Owner:</span> 
+                <span className="ml-1">{result.ownerName}</span>
+              </div>
+            )}
+            
             <div className="text-sm text-gray-600 mt-1">
               Registered on: {formatTimestamp(result.timestamp)}
             </div>
+            
+            {/* Royalty Information */}
+            {result.hasRoyalty && (
+              <div className="mt-3 p-3 bg-yellow-50 rounded-md">
+                <div className="font-medium text-yellow-800 flex items-center">
+                  <FaMoneyBillWave className="mr-2" />
+                  Royalty Required: ${parseFloat(result.royaltyFee).toFixed(2)}
+                </div>
+                
+                {/* Contact Details */}
+                {result.contactDetails && (
+                  <div className="text-sm text-gray-700 mt-2">
+                    <strong>Contact the owner:</strong> {result.contactDetails}
+                  </div>
+                )}
+                
+                <div className="text-xs text-gray-500 mt-1">
+                  Please contact the owner to arrange payment before using this asset.
+                </div>
+              </div>
+            )}
+            
+            {/* File Download Option */}
             {result.verificationMethod === 'file' && fileContent && (
               <div className="mt-2">
                 <button 
@@ -232,6 +260,7 @@ const VerifyPage = () => {
         </div>
       );
     }
+    
     return (
       <div className="mt-4 p-4 bg-red-100 border-l-4 border-red-500 rounded">
         <div className="font-bold text-red-700">✗ Not Verified</div>

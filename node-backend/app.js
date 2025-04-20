@@ -71,14 +71,20 @@ const createActor = async () => {
     console.error(err);
   });
   
-  // Update the IDL factory to include the name field
+  // Update the IDL factory to include the new fields
   const idlFactory = ({ IDL }) => {
     return IDL.Service({
       'register_hash': IDL.Func([
         IDL.Text, // hash
         IDL.Vec(IDL.Nat8), // file bytes
         IDL.Text, // content type
-        IDL.Text  // name - add this parameter
+        IDL.Text, // name
+        IDL.Text, // description
+        IDL.Text, // owner_name - use snake_case to match Rust
+        IDL.Text, // owner_dob
+        IDL.Text, // royalty_fee
+        IDL.Bool, // has_royalty
+        IDL.Text  // contact_details
       ], [], []),
       'get_hash_info': IDL.Func(
         [IDL.Text], 
@@ -86,8 +92,14 @@ const createActor = async () => {
           'user': IDL.Principal,
           'timestamp': IDL.Nat64,
           'content': IDL.Opt(IDL.Vec(IDL.Nat8)),
-          'content_type': IDL.Text, // Changed from contentType to content_type to match Rust
-          'name': IDL.Text
+          'content_type': IDL.Text,
+          'name': IDL.Text,
+          'description': IDL.Text,
+          'owner_name': IDL.Text, // Changed from ownerName to owner_name
+          'owner_dob': IDL.Text,
+          'royalty_fee': IDL.Text, // Changed from royaltyFee to royalty_fee
+          'has_royalty': IDL.Bool, // Changed from hasRoyalty to has_royalty
+          'contact_details': IDL.Text // Changed from contactDetails to contact_details
         }))], 
         ['query']
       ),
@@ -98,7 +110,13 @@ const createActor = async () => {
           'timestamp': IDL.Nat64,
           'content': IDL.Opt(IDL.Vec(IDL.Nat8)),
           'content_type': IDL.Text,
-          'name': IDL.Text
+          'name': IDL.Text,
+          'description': IDL.Text,
+          'owner_name': IDL.Text, // Changed from ownerName to owner_name
+          'owner_dob': IDL.Text,
+          'royalty_fee': IDL.Text, // Changed from royaltyFee to royalty_fee
+          'has_royalty': IDL.Bool, // Changed from hasRoyalty to has_royalty
+          'contact_details': IDL.Text // Changed from contactDetails to contact_details
         }))], 
         ['query']
       ),
@@ -106,9 +124,14 @@ const createActor = async () => {
         'user': IDL.Principal,
         'timestamp': IDL.Nat64,
         'content_type': IDL.Text,
-        'name': IDL.Text
+        'name': IDL.Text,
+        'description': IDL.Text,
+        'owner_name': IDL.Text, // Changed from ownerName to owner_name
+        'royalty_fee': IDL.Text, // Changed from royaltyFee to royalty_fee
+        'has_royalty': IDL.Bool, // Changed from hasRoyalty to has_royalty
+        'contact_details': IDL.Text // Changed from contactDetails to contact_details
+        // Note: We don't include ownerDob for security
       })))], ['query'])
-      // Add other methods as needed
     });
   };
   
@@ -125,15 +148,25 @@ const createActor = async () => {
         const result = await actor.get_hash_info(hash);
         console.log('Original get_hash_info result:', result);
         
-        // Extract and preserve name from the result
+        // Extract and preserve info from the result
         if (result) {
           const hashInfo = Array.isArray(result) && result.length > 0 ? result[0] : result;
-          if (hashInfo && hashInfo.name) {
-            // Store the name in a global variable
+          if (hashInfo) {
+            // Store all relevant info in the global variable
             global.__lastExtractedName = hashInfo.name;
-            // Also store the timestamp for later use
-            global.__lastHashInfo = hashInfo;
-            console.log('Preserved name and timestamp:', global.__lastExtractedName, hashInfo.timestamp);
+            global.__lastHashInfo = {
+              ...hashInfo,
+              // Ensure fields exist in both formats to handle inconsistencies
+              owner_name: hashInfo.owner_name || hashInfo.ownerName || '',
+              ownerName: hashInfo.owner_name || hashInfo.ownerName || '',
+              royalty_fee: hashInfo.royalty_fee || hashInfo.royaltyFee || '0',
+              royaltyFee: hashInfo.royalty_fee || hashInfo.royaltyFee || '0',
+              has_royalty: hashInfo.has_royalty || hashInfo.hasRoyalty || false,
+              hasRoyalty: hashInfo.has_royalty || hashInfo.hasRoyalty || false,
+              contact_details: hashInfo.contact_details || hashInfo.contactDetails || '',
+              contactDetails: hashInfo.contact_details || hashInfo.contactDetails || ''
+            };
+            console.log('Preserved complete hash info for later use');
           }
         }
         
@@ -155,9 +188,15 @@ app.post('/register', upload.single('file'), async (req, res) => {
       return res.status(400).json({ error: 'File is required' });
     }
     
-    // Get principal and name from request
+    // Get all parameters from request
     const principal = req.body.principal;
-    const name = req.body.name || req.file.originalname; // Use the provided name or filename as fallback
+    const name = req.body.name || req.file.originalname;
+    const description = req.body.description || '';
+    const ownerName = req.body.ownerName || '';
+    const ownerDob = req.body.ownerDob || '';
+    const royaltyFee = req.body.royaltyFee || '0';
+    const hasRoyalty = req.body.hasRoyalty === 'true';
+    const contactDetails = req.body.contactDetails || '';
     
     if (!principal) {
       return res.status(401).json({ error: 'Authentication required' });
@@ -171,6 +210,10 @@ app.post('/register', upload.single('file'), async (req, res) => {
     console.log('Registering hash:', hash);
     console.log('Filename:', req.file.originalname);
     console.log('Name:', name);
+    console.log('Description:', description);
+    console.log('Owner:', ownerName);
+    console.log('Has Royalty:', hasRoyalty);
+    console.log('Royalty Fee:', royaltyFee);
     console.log('Principal:', principal);
     console.log('File size:', req.file.size, 'bytes');
     
@@ -181,7 +224,13 @@ app.post('/register', upload.single('file'), async (req, res) => {
         hash, 
         [...new Uint8Array(req.file.buffer)], 
         req.file.mimetype,
-        name // Add the name parameter
+        name,
+        description,
+        ownerName,
+        ownerDob,
+        royaltyFee,
+        hasRoyalty,
+        contactDetails
       );
       
       res.json({
@@ -189,7 +238,12 @@ app.post('/register', upload.single('file'), async (req, res) => {
         hash,
         filename: req.file.originalname,
         fileType: req.file.mimetype,
-        name
+        name,
+        description,
+        ownerName,
+        hasRoyalty,
+        royaltyFee,
+        contactDetails
       });
     } catch (canisterError) {
       console.error('Canister error:', canisterError);
@@ -211,15 +265,17 @@ app.post('/register', upload.single('file'), async (req, res) => {
   }
 });
 
-// Verify hash endpoint
+// Update the /verify endpoint
+
 app.post('/verify', express.json(), async (req, res) => {
   try {
-    const { hash, fetchContent } = req.body;
+    const { hash } = req.body;
+    
     if (!hash) {
       return res.status(400).json({ error: 'Hash is required' });
     }
-
-    // Validate hash format (should be 64 hex characters for SHA-256)
+    
+    // Validate hash format (SHA-256 is 64 hex characters)
     if (!/^[a-f0-9]{64}$/i.test(hash)) {
       return res.status(400).json({ 
         error: 'Invalid hash format - must be a valid SHA-256 hash (64 hex characters)',
@@ -236,7 +292,7 @@ app.post('/verify', express.json(), async (req, res) => {
     try {
       const result = await actor.get_hash_info(hash);
       
-      // Safe console logging to avoid BigInt serialization errors
+      // Log the result safely
       console.log('Direct lookup result type:', typeof result);
       try {
         console.log('Direct lookup result:', JSON.stringify(result, (_, value) => 
@@ -246,160 +302,186 @@ app.post('/verify', express.json(), async (req, res) => {
         console.log('Error logging result:', logError.message);
       }
       
-      // Check if we got a valid result (not null or undefined)
-      if (result) {
-        // Check if result is an array and handle accordingly
-        const hashInfo = Array.isArray(result) && result.length > 0 ? result[0] : result;
+      // Enhanced result checking - handle empty arrays too
+      if (result && ((Array.isArray(result) && result.length > 0) || !Array.isArray(result))) {
+        // Extract hash info, handling both array and direct object formats
+        const hashInfo = Array.isArray(result) ? result[0] : result;
         
-        // Convert BigInt to Number for the timestamp (dividing by 1,000,000 to convert from nanoseconds to milliseconds)
-        const timestamp = typeof hashInfo.timestamp === 'bigint' 
-          ? Number(hashInfo.timestamp / BigInt(1000000)) 
-          : typeof hashInfo.timestamp === 'string'
-            ? Number(hashInfo.timestamp) / 1000000
-            : Date.now();
-        
-        const response = {
-          verified: true,
-          user: hashInfo.user ? 
-                (hashInfo.user.__principal__ ? hashInfo.user.__principal__ : hashInfo.user.toString()) 
-                : 'Unknown',
-          timestamp: timestamp,
-          hash,
-          name: hashInfo.name || 'Unknown'
-        };
-        
-        // Add content if requested
-        if (fetchContent && hashInfo.content) {
+        if (hashInfo) {
+          // Process timestamp
+          let timestamp;
           try {
-            response.fileContent = [...hashInfo.content];
-            response.contentType = hashInfo.content_type || 'application/octet-stream';
-          } catch (contentError) {
-            console.error('Error extracting content:', contentError);
+            timestamp = typeof hashInfo.timestamp === 'bigint'
+              ? Number(hashInfo.timestamp / BigInt(1000000))
+              : typeof hashInfo.timestamp === 'string'
+                ? Number(hashInfo.timestamp) / 1000000
+                : hashInfo.timestamp;
+          } catch (timeError) {
+            console.log('Error processing timestamp:', timeError.message);
+            timestamp = Date.now(); // Fallback to current time
           }
+          
+          return res.json({
+            verified: true,
+            user: hashInfo.user ? 
+                  (hashInfo.user.__principal__ ? hashInfo.user.__principal__ : hashInfo.user.toString()) 
+                  : 'Unknown',
+            timestamp: timestamp,
+            hash,
+            name: hashInfo.name || 'Unknown',
+            description: hashInfo.description || '',
+            ownerName: hashInfo.owner_name || hashInfo.ownerName || '',
+            // Don't send ownerDob in response for security
+            royaltyFee: hashInfo.royalty_fee || hashInfo.royaltyFee || '0',
+            hasRoyalty: hashInfo.has_royalty || hashInfo.hasRoyalty || false,
+            contactDetails: hashInfo.contact_details || hashInfo.contactDetails || '',
+            message: 'File is verified'
+          });
         }
-        
-        return res.json(response);
       }
+      
+      // If we got here, the result was empty or not as expected
+      console.log('Empty or unexpected result format. Trying metadata lookup...');
     } catch (lookupError) {
       console.log('Direct lookup error:', lookupError.message);
-      
-      // If it's a BigInt serialization error, retry with different approach
-      if (lookupError.message && lookupError.message.includes('serialize a BigInt')) {
-        console.log('Attempting to use metadata endpoint instead');
-        try {
-          // Try the metadata endpoint which might not have the content
-          const metadataResult = await actor.get_hash_metadata(hash);
-          if (metadataResult) {
-            // Check if result is an array and handle accordingly
-            const metadataInfo = Array.isArray(metadataResult) && metadataResult.length > 0 
-              ? metadataResult[0] 
-              : metadataResult;
-            
-            const timestamp = typeof metadataInfo.timestamp === 'bigint' 
-              ? Number(metadataInfo.timestamp / BigInt(1000000)) 
-              : typeof metadataInfo.timestamp === 'string'
-                ? Number(metadataInfo.timestamp) / 1000000
-                : Date.now();
-            
-            return res.json({
-              verified: true,
-              user: metadataInfo.user ? 
-                    (metadataInfo.user.__principal__ ? metadataInfo.user.__principal__ : metadataInfo.user.toString()) 
-                    : 'Unknown',
-              timestamp: timestamp,
-              hash,
-              name: metadataInfo.name || 'Unknown',
-              message: 'File is verified (metadata lookup)'
-            });
-          }
-        } catch (metadataError) {
-          console.log('Metadata lookup error:', metadataError.message);
-        }
-      }
     }
     
-    // If direct lookup fails, try a test registration
+    // Try metadata lookup as a fallback
+    try {
+      const metadataResult = await actor.get_hash_metadata(hash);
+      console.log('Metadata lookup result:', metadataResult);
+      
+      if (metadataResult && ((Array.isArray(metadataResult) && metadataResult.length > 0) || !Array.isArray(metadataResult))) {
+        const metadataInfo = Array.isArray(metadataResult) ? metadataResult[0] : metadataResult;
+        
+        if (metadataInfo) {
+          let timestamp;
+          try {
+            timestamp = typeof metadataInfo.timestamp === 'bigint'
+              ? Number(metadataInfo.timestamp / BigInt(1000000))
+              : typeof metadataInfo.timestamp === 'string'
+                ? Number(metadataInfo.timestamp) / 1000000
+                : metadataInfo.timestamp;
+          } catch (timeError) {
+            console.log('Error processing metadata timestamp:', timeError.message);
+            timestamp = Date.now();
+          }
+          
+          return res.json({
+            verified: true,
+            user: metadataInfo.user ? 
+                  (metadataInfo.user.__principal__ ? metadataInfo.user.__principal__ : metadataInfo.user.toString()) 
+                  : 'Unknown',
+            timestamp: timestamp,
+            hash,
+            name: metadataInfo.name || 'Unknown',
+            description: metadataInfo.description || '',
+            ownerName: metadataInfo.owner_name || metadataInfo.ownerName || '',
+            royaltyFee: metadataInfo.royalty_fee || metadataInfo.royaltyFee || '0',
+            hasRoyalty: metadataInfo.has_royalty || metadataInfo.hasRoyalty || false,
+            contactDetails: metadataInfo.contact_details || metadataInfo.contactDetails || '',
+            message: 'File is verified (metadata lookup)'
+          });
+        }
+      }
+    } catch (metadataError) {
+      console.log('Metadata lookup error:', metadataError.message);
+    }
+    
+    // If none of the lookups worked, try test registration
     try {
       console.log('Trying test registration for hash:', hash);
       
-      // Attempt to register the hash (this should fail if it exists)
-      await actor.register_hash(
-        hash,
-        [0], // Minimal dummy content
-        'test/plain',
-        'Test File'
-      );
+      // Keep track of the hash we're testing
+      let registeredHash = hash;
       
-      // If we get here without error, the hash was NOT previously registered
-      console.log('Test registration succeeded, hash not found');
-      return res.status(404).json({
-        verified: false,
-        message: 'Hash not found',
-        hash
-      });
-      
-    } catch (regError) {
-      console.log('Test registration error type:', typeof regError);
-      console.log('Test registration error full message:', regError.message);
-      console.log('Test registration error:', regError.message);
-      
-      // Only verify if the registered hash matches the requested hash exactly
-      if (registeredHash && registeredHash === hash) {
-        console.log('Hash exists per registration test, verified hash:', registeredHash);
-        
-        // Use the preserved name from global variable if available
-        const preservedName = global.__lastExtractedName || 'Unknown (file name not recovered)';
-        // Extract just the filename without path
-        const cleanName = preservedName.includes('/') || preservedName.includes('\\')
-          ? preservedName.split(/[\/\\]/).pop()
-          : preservedName;
-        console.log('Using preserved name for verification:', cleanName);
-
-        // Try to extract timestamp from original result if available in global variable
-        let originalTimestamp;
-        try {
-          // Check if we can access the timestamp from the original get_hash_info call
-          if (global.__lastHashInfo && global.__lastHashInfo.timestamp) {
-            // Convert from nanoseconds to milliseconds
-            originalTimestamp = typeof global.__lastHashInfo.timestamp === 'bigint'
-              ? Number(global.__lastHashInfo.timestamp / BigInt(1000000))
-              : typeof global.__lastHashInfo.timestamp === 'string'
-                ? Number(global.__lastHashInfo.timestamp) / 1000000
-                : null;
-            console.log('Retrieved original timestamp:', originalTimestamp);
-          }
-        } catch (timeError) {
-          console.log('Error extracting timestamp:', timeError.message);
-        }
-
-        return res.json({
-          verified: true,
-          message: 'File content has been verified on the blockchain!',
+      try {
+        // Attempt to register the hash (this should fail if it exists)
+        await actor.register_hash(
           hash,
-          filename: req.file.originalname,
-          name: cleanName, // Use clean filename
-          user: 'Unknown (recovered)',
-          timestamp: originalTimestamp || Date.now(), // Use extracted timestamp or current time
-          verificationMethod: 'file'
+          [0], // Minimal dummy content
+          'test/plain',
+          'Test File',
+          '', // description
+          '', // owner_name
+          '', // owner_dob
+          '0', // royalty_fee
+          false, // has_royalty
+          ''  // contact_details
+        );
+        
+        // If we get here without error, the hash was NOT previously registered
+        console.log('Test registration succeeded, hash not found');
+        return res.status(404).json({
+          verified: false,
+          message: 'Hash not found',
+          hash
+        });
+      } catch (regError) {
+        // If error includes "Hash already registered", the hash exists!
+        if (regError.message && regError.message.includes('Hash already registered: hash:')) {
+          console.log('Hash verification succeeded via registration test');
+          
+          // Try to extract the original timestamp if available
+          let originalTimestamp;
+          try {
+            if (global.__lastHashInfo && global.__lastHashInfo.timestamp) {
+              originalTimestamp = typeof global.__lastHashInfo.timestamp === 'bigint'
+                ? Number(global.__lastHashInfo.timestamp / BigInt(1000000))
+                : typeof global.__lastHashInfo.timestamp === 'string'
+                  ? Number(global.__lastHashInfo.timestamp) / 1000000
+                  : null;
+              console.log('Retrieved original timestamp:', originalTimestamp);
+            }
+          } catch (timeError) {
+            console.log('Error extracting timestamp:', timeError.message);
+          }
+          
+          // Get the clean name if available
+          const preservedName = global.__lastExtractedName || 'Unknown (file name not recovered)';
+          const cleanName = preservedName.includes('/') || preservedName.includes('\\')
+            ? preservedName.split(/[\/\\]/).pop()
+            : preservedName;
+          
+          return res.json({
+            verified: true,
+            message: 'File content has been verified on the blockchain!',
+            hash,
+            name: cleanName,
+            ownerName: global.__lastHashInfo?.owner_name || global.__lastHashInfo?.ownerName || '',
+            description: global.__lastHashInfo?.description || '',
+            royaltyFee: global.__lastHashInfo?.royalty_fee || global.__lastHashInfo?.royaltyFee || '0',
+            hasRoyalty: global.__lastHashInfo?.has_royalty || global.__lastHashInfo?.hasRoyalty || false, 
+            contactDetails: global.__lastHashInfo?.contact_details || global.__lastHashInfo?.contactDetails || '',
+            user: 'Unknown (recovered)',
+            timestamp: originalTimestamp || Date.now(),
+            verificationMethod: 'file' // This should be 'file', not registration-test
+          });
+        }
+        
+        // Any other errors should result in not verified
+        console.log('Hash verification failed: registration test failed for reasons other than hash existence');
+        return res.status(404).json({
+          verified: false,
+          message: 'Hash not found or verification error',
+          error: regError.message,
+          hash
         });
       }
-      
-      // Any other errors should result in not verified
-      console.log('Hash verification failed: registration test failed for reasons other than hash existence');
-      return res.status(404).json({
+    } catch (error) {
+      console.error('Error in verify process:', error);
+      return res.status(500).json({
         verified: false,
-        message: 'Hash not found or verification error',
-        error: regError.message,
+        error: error.message,
         hash
       });
     }
-    
   } catch (error) {
-    console.error('Error in verify:', error);
+    console.error('Error in verify endpoint:', error);
     return res.status(500).json({
       verified: false,
       error: error.message,
-      hash
+      hash: req.body?.hash || 'unknown'
     });
   }
 });
@@ -464,9 +546,15 @@ app.post('/verify-file', upload.single('file'), async (req, res) => {
           hash,
           filename: req.file.originalname,
           name: cleanName, // Use clean filename
+          description: hashInfo.description || '',
+          ownerName: hashInfo.owner_name || hashInfo.ownerName || '',
+          royaltyFee: hashInfo.royalty_fee || hashInfo.royaltyFee || '0',
+          hasRoyalty: hashInfo.has_royalty || hashInfo.hasRoyalty || false,
+          contactDetails: hashInfo.contact_details || hashInfo.contactDetails || '',
           content_type: hashInfo.content_type,
           // Return content if available
-          fileContent: hashInfo.content ? [...hashInfo.content] : undefined
+          fileContent: hashInfo.content ? [...hashInfo.content] : undefined,
+          verificationMethod: 'file'
         });
       }
     } catch (lookupError) {
@@ -526,7 +614,13 @@ app.post('/verify-file', upload.single('file'), async (req, res) => {
         hash,
         [0], // Minimal dummy content
         'test/plain',
-        'Test File' // Add this fourth parameter
+        'Test File',
+        '', // description
+        '', // owner_name
+        '', // owner_dob
+        '0', // royalty_fee
+        false, // has_royalty
+        ''  // contact_details
       );
       
       // If we get here without error, the hash was NOT previously registered
@@ -584,8 +678,13 @@ app.post('/verify-file', upload.single('file'), async (req, res) => {
             hash,
             filename: req.file.originalname,
             name: cleanName, // Use clean filename
+            description: global.__lastHashInfo?.description || '',
+            ownerName: global.__lastHashInfo?.owner_name || '',
+            royaltyFee: global.__lastHashInfo?.royalty_fee || '0',
+            hasRoyalty: global.__lastHashInfo?.has_royalty || false,
+            contactDetails: global.__lastHashInfo?.contact_details || '',
             user: 'Unknown (recovered)',
-            timestamp: originalTimestamp || Date.now(), // Use extracted timestamp instead of undefined variable
+            timestamp: originalTimestamp || Date.now(),
             verificationMethod: 'file'
           });
         }
@@ -681,6 +780,47 @@ app.post('/debug-verify', express.json(), async (req, res) => {
       error: error.message,
       stack: error.stack
     });
+  }
+});
+
+// Add before the get-all-files endpoint
+app.post('/verify-download-access', express.json(), async (req, res) => {
+  try {
+    const { hash, dob } = req.body;
+    
+    if (!hash || !dob) {
+      return res.status(400).json({ error: 'Hash and date of birth are required' });
+    }
+    
+    if (!/^[a-f0-9]{64}$/i.test(hash)) {
+      return res.status(400).json({ error: 'Invalid hash format' });
+    }
+    
+    const actor = await createActor();
+    const result = await actor.get_hash_info(hash);
+    
+    if (!result) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+    
+    const hashInfo = Array.isArray(result) && result.length > 0 ? result[0] : result;
+    
+    // Verify the DOB matches
+    if (hashInfo.ownerDob !== dob) {
+      return res.status(403).json({ 
+        error: 'Access denied. Date of birth does not match.',
+        verified: false
+      });
+    }
+    
+    // If we get here, the DOB matches
+    return res.json({
+      verified: true,
+      message: 'Download access verified'
+    });
+  } catch (error) {
+    console.error('Error verifying download access:', error);
+    res.status(500).json({ error: 'Failed to verify download access' });
   }
 });
 

@@ -9,7 +9,7 @@ const FilesList = () => {
   const [error, setError] = useState(null);
   const [sortBy, setSortBy] = useState('timestamp');
   const [sortDirection, setSortDirection] = useState('desc');
-  const [copiedHashes, setCopiedHashes] = useState({});
+  const [iscopied, setIsCopied] = useState(false);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -166,17 +166,15 @@ const FilesList = () => {
                           <button
                             onClick={() => {
                               navigator.clipboard.writeText(file.hash);
-                              setCopiedHashes(prev => ({ ...prev, [file.hash]: true }));
-                              setTimeout(() => {
-                                setCopiedHashes(prev => ({ ...prev, [file.hash]: false }));
-                              }, 1200);
+                              setIsCopied(true);
+                              setTimeout(() => setIsCopied(false), 1200);
                             }}
                             className="ml-2 text-blue-400 hover:text-blue-600"
                             title="Copy hash"
                           >
                             <FaCopy />
                           </button>
-                          {copiedHashes[file.hash] && (
+                          {iscopied && (
                             <span className="ml-2 text-green-400 text-xs">Copied!</span>
                           )}
                         </span>

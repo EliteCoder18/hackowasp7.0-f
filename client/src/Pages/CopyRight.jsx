@@ -76,6 +76,7 @@ const useAuth = () => {
   };
 };
 
+// Update the Register component
 const Register = () => {
   const { principal } = useContext(AuthContext);
   const [file, setFile] = useState(null);
@@ -83,6 +84,12 @@ const Register = () => {
   const [hash, setHash] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [fileName, setFileName] = useState('');
+  const [description, setDescription] = useState('');
+  const [ownerName, setOwnerName] = useState('');
+  const [ownerDob, setOwnerDob] = useState('');
+  const [hasRoyalty, setHasRoyalty] = useState(false);
+  const [royaltyFee, setRoyaltyFee] = useState('0');
+  const [contactDetails, setContactDetails] = useState('');
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -112,6 +119,21 @@ const Register = () => {
       return;
     }
 
+    if (!ownerName) {
+      setMessage('Owner name is required.');
+      return;
+    }
+
+    if (!ownerDob) {
+      setMessage('Owner date of birth is required as a passkey for downloads.');
+      return;
+    }
+
+    if (hasRoyalty && !royaltyFee) {
+      setMessage('Please enter a royalty fee or disable royalties.');
+      return;
+    }
+
     setIsUploading(true);
     setMessage('Registering file on the blockchain...');
 
@@ -119,7 +141,13 @@ const Register = () => {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('principal', principal);
-      formData.append('name', fileName); // Add the name to the form data
+      formData.append('name', fileName);
+      formData.append('description', description);
+      formData.append('ownerName', ownerName);
+      formData.append('ownerDob', ownerDob);
+      formData.append('hasRoyalty', hasRoyalty);
+      formData.append('royaltyFee', royaltyFee);
+      formData.append('contactDetails', contactDetails);
 
       const response = await axios.post(`${API_BASE_URL}/register`, formData, {
         headers: {
@@ -164,15 +192,97 @@ const Register = () => {
         </div>
         
         <div>
-          <label className="block text-gray-300 mb-2">File Name/Description:</label>
+          <label className="block text-gray-300 mb-2">File Name:</label>
           <input
             type="text"
             value={fileName}
             onChange={(e) => setFileName(e.target.value)}
-            placeholder="Enter a name or description"
+            placeholder="Enter a name"
             className="w-full bg-gray-800 text-gray-300 rounded-md p-2 border border-gray-700"
           />
         </div>
+        
+        <div>
+          <label className="block text-gray-300 mb-2">Description:</label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Enter a description for this file"
+            className="w-full bg-gray-800 text-gray-300 rounded-md p-2 border border-gray-700 h-24"
+          />
+        </div>
+        
+        <div>
+          <label className="block text-gray-300 mb-2">Owner Name:</label>
+          <input
+            type="text"
+            value={ownerName}
+            onChange={(e) => setOwnerName(e.target.value)}
+            placeholder="Enter the owner's name"
+            className="w-full bg-gray-800 text-gray-300 rounded-md p-2 border border-gray-700"
+            required
+          />
+        </div>
+        
+        <div>
+          <label className="block text-gray-300 mb-2">Owner Date of Birth (required as passkey):</label>
+          <input
+            type="date"
+            value={ownerDob}
+            onChange={(e) => setOwnerDob(e.target.value)}
+            className="w-full bg-gray-800 text-gray-300 rounded-md p-2 border border-gray-700"
+            required
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            This will be used as a passkey for others to download this file
+          </p>
+        </div>
+        
+        <div className="mt-4">
+          <div className="flex items-center mb-2">
+            <input
+              type="checkbox"
+              id="royaltyOption"
+              checked={hasRoyalty}
+              onChange={(e) => setHasRoyalty(e.target.checked)}
+              className="mr-2"
+            />
+            <label htmlFor="royaltyOption" className="text-gray-300">
+              Enable royalty service for this file
+            </label>
+          </div>
+        </div>
+        
+        {hasRoyalty && (
+          <div className="space-y-4 p-4 bg-gray-800 rounded-md border border-gray-700">
+            <div>
+              <label className="block text-gray-300 mb-2">Royalty Fee (USD):</label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={royaltyFee}
+                onChange={(e) => setRoyaltyFee(e.target.value)}
+                placeholder="Enter the royalty amount"
+                className="w-full bg-gray-700 text-gray-300 rounded-md p-2 border border-gray-600"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-gray-300 mb-2">Contact Details:</label>
+              <input
+                type="text"
+                value={contactDetails}
+                onChange={(e) => setContactDetails(e.target.value)}
+                placeholder="Email or phone number"
+                className="w-full bg-gray-700 text-gray-300 rounded-md p-2 border border-gray-600"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                This will be visible to users who wish to contact you about using this asset
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       <button
@@ -400,8 +510,84 @@ const Verify = () => {
     }
   };
 
-
- 
+  // Update the renderVerificationResult function in Verify component
+  const renderVerificationResult = () => {
+    if (!result) return null;
+    
+    // Verified result - show more detailed information
+    if (result.verified) {
+      const isUnreliable = 
+        !result.name || result.name === 'Unknown' || 
+        !result.user || result.user === 'Unknown (recovered)';
+        
+      // If file verification is unreliable, show warning only if not verified by test registration
+      if (isUnreliable && result.verificationMethod !== 'registration-test') {
+        return (
+          <div className="mt-4 p-4 bg-yellow-100 border-l-4 border-yellow-500 rounded">
+            <div className="font-bold text-yellow-700">⚠️ Verification Unreliable</div>
+            <div className="mt-2">
+              <p>This content cannot be fully verified.</p>
+            </div>
+          </div>
+        );
+      }
+      
+      return (
+        <div className="mt-4 p-4 bg-green-100 border-l-4 border-green-500 rounded">
+          <div className="font-bold text-green-700">✓ Content Verified</div>
+          <div className="mt-2">
+            <div className="text-xl font-semibold">{result.name}</div>
+            
+            {result.description && (
+              <div className="text-gray-700 mt-1 italic">
+                {result.description}
+              </div>
+            )}
+            
+            {result.ownerName && (
+              <div className="flex items-center mt-1 text-gray-600">
+                <span className="font-medium">Owner:</span> {result.ownerName}
+              </div>
+            )}
+            
+            <div className="text-sm text-gray-600 mt-1">
+              Registered on: {formatTimestamp(result.timestamp)}
+            </div>
+            
+            {result.hasRoyalty && (
+              <div className="mt-3 p-3 bg-yellow-50 rounded-md">
+                <div className="font-medium text-yellow-800">
+                  Royalty Required: ${parseFloat(result.royaltyFee).toFixed(2)}
+                </div>
+                
+                {result.contactDetails && (
+                  <div className="text-sm text-gray-700 mt-2">
+                    <strong>Contact the owner:</strong> {result.contactDetails}
+                  </div>
+                )}
+                
+                <div className="text-xs text-gray-500 mt-1">
+                  Please contact the owner to arrange payment before using this asset.
+                </div>
+              </div>
+            )}
+            
+            {/* Rest of component stays the same */}
+          </div>
+        </div>
+      );
+    }
+    
+    // Not verified result
+    return (
+      <div className="mt-4 p-4 bg-red-100 border-l-4 border-red-500 rounded">
+        <div className="font-bold text-red-700">✗ Not Verified</div>
+        <div className="mt-2">
+          <div>{result.message || 'Content not found on the blockchain'}</div>
+        </div>
+      </div>
+    );
+  };
 };
 
 // Modify the Sidebar component
@@ -426,7 +612,11 @@ const Sidebar = ({ principal, onLogout, recentFiles, onRefresh }) => {
       {/* Recent Files Section with Refresh Button */}
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-sm font-medium text-gray-400 uppercase">Recent Files</h3>
+        <button onClick={()=>{
+          window.location.href = '/files';
+         }}>
+           <h3 className="text-sm font-medium bg-gray-300 p-2 rounded-lg text-gray-800 uppercase">Recent Files</h3>
+           </button>
           <button
             onClick={handleRefreshClick}
             className={`p-2 text-gray-400 hover:text-white transition-colors ${
