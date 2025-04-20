@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { API_BASE_URL } from "../config";
-import { FaFileAlt, FaDownload, FaCopy } from 'react-icons/fa';
+import { FaFileAlt, FaDownload, FaCopy, FaUser, FaInfoCircle } from 'react-icons/fa';
+import axios from 'axios';
 
 const FilesList = () => {
   const [files, setFiles] = useState([]);
@@ -14,6 +15,13 @@ const FilesList = () => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [filesPerPage] = useState(10);
+  
+  // DOB verification modal state
+  const [showDobModal, setShowDobModal] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [dobInput, setDobInput] = useState('');
+  const [dobError, setDobError] = useState('');
+  const [verifying, setVerifying] = useState(false);
 
   useEffect(() => {
     fetchFiles();
@@ -56,19 +64,50 @@ const FilesList = () => {
     });
   };
 
-  const handleDownload = async (hash, name) => {
+  // Updated to show DOB modal instead of direct download
+  const initiateDownload = (file) => {
+    setSelectedFile(file);
+    setDobInput('');
+    setDobError('');
+    setShowDobModal(true);
+  };
+
+  // Process download after DOB verification
+  const handleDownload = async () => {
+    if (!selectedFile) return;
+    
+    setVerifying(true);
+    setDobError('');
+    
     try {
-      const url = `${API_BASE_URL}/download-file/${hash}`;
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = name || 'file';
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => {
-        document.body.removeChild(a);
-      }, 0);
+      // Verify DOB passkey first
+      const verifyResponse = await axios.post(`${API_BASE_URL}/verify-download-access`, {
+        hash: selectedFile.hash,
+        dob: dobInput
+      });
+      
+      if (verifyResponse.data.verified) {
+        // DOB verified, proceed with download
+        const url = `${API_BASE_URL}/download-file/${selectedFile.hash}`;
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = selectedFile.name || 'file';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          document.body.removeChild(a);
+        }, 0);
+        
+        // Close modal
+        setShowDobModal(false);
+      } else {
+        setDobError('Verification failed. Please check the date of birth.');
+      }
     } catch (err) {
-      alert('Failed to download file. Please try again.');
+      console.error('Download error:', err);
+      setDobError(err.response?.data?.error || 'Failed to verify access. Please check the date of birth.');
+    } finally {
+      setVerifying(false);
     }
   };
 
@@ -82,6 +121,10 @@ const FilesList = () => {
       return sortDirection === 'asc'
         ? a.timestamp - b.timestamp
         : b.timestamp - a.timestamp;
+    } else if (sortBy === 'ownerName') {
+      return sortDirection === 'asc'
+        ? (a.ownerName || '').localeCompare(b.ownerName || '')
+        : (b.ownerName || '').localeCompare(a.ownerName || '');
     }
     return 0;
   });
@@ -144,6 +187,16 @@ const FilesList = () => {
                     </th>
                     <th
                       className="px-4 py-3 text-left cursor-pointer select-none"
+                      onClick={() => handleSort('ownerName')}
+                    >
+                      Owner
+                      {sortBy === 'ownerName' && (
+                        <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                      )}
+                    </th>
+                    <th className="px-4 py-3 text-left">Description</th>
+                    <th
+                      className="px-4 py-3 text-left cursor-pointer select-none"
                       onClick={() => handleSort('timestamp')}
                     >
                       Registration Date
@@ -159,10 +212,27 @@ const FilesList = () => {
                   {currentFiles.map((file) => (
                     <tr key={file.hash} className="border-t border-gray-800 hover:bg-gray-900 transition">
                       <td className="px-4 py-3 text-white font-medium">{file.name}</td>
+                      <td className="px-4 py-3 text-gray-300">
+                        {file.ownerName ? (
+                          <div className="flex items-center">
+                            <FaUser className="mr-2 text-blue-400" />
+                            {file.ownerName}
+                          </div>
+                        ) : (
+                          <span className="text-gray-500">Unknown</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-gray-300">
+                        {file.description ? (
+                          <div className="max-w-xs truncate">{file.description}</div>
+                        ) : (
+                          <span className="text-gray-500 italic">No description</span>
+                        )}
+                      </td>
                       <td className="px-4 py-3 text-gray-300">{formatDate(file.timestamp)}</td>
                       <td className="px-4 py-3">
                         <span className="text-gray-400 font-mono text-xs break-all flex items-center">
-                          {file.hash}
+                          {file.hash.substring(0, 10)}...
                           <button
                             onClick={() => {
                               navigator.clipboard.writeText(file.hash);
@@ -181,7 +251,7 @@ const FilesList = () => {
                       </td>
                       <td className="px-4 py-3">
                         <button
-                          onClick={() => handleDownload(file.hash, file.name)}
+                          onClick={() => initiateDownload(file)}
                           className="flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-1.5 rounded-lg text-sm font-semibold shadow hover:from-green-600 hover:to-emerald-700 transition"
                         >
                           <FaDownload /> Download
@@ -236,6 +306,69 @@ const FilesList = () => {
       <div className="text-center text-gray-500 text-xs mt-8">
         &copy; {new Date().getFullYear()} ProofNest - Blockchain Content Verification
       </div>
+
+      {/* DOB Verification Modal */}
+      {showDobModal && selectedFile && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-lg p-6 w-96 max-w-full">
+            <div className="flex items-center mb-4">
+              <FaInfoCircle className="text-blue-400 mr-2 text-xl" />
+              <h2 className="text-xl font-bold text-white">Access Protected</h2>
+            </div>
+            
+            <p className="text-gray-300 mb-4">
+              This file was created by <strong>{selectedFile.ownerName || "Unknown"}</strong>. 
+              Please enter the owner's date of birth to download.
+            </p>
+            
+            <div className="mb-4">
+              <label className="block text-gray-400 mb-2 text-sm">Date of Birth:</label>
+              <input
+                type="date"
+                value={dobInput}
+                onChange={(e) => setDobInput(e.target.value)}
+                className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white"
+              />
+            </div>
+            
+            {dobError && (
+              <div className="bg-red-900 bg-opacity-50 text-red-200 p-3 rounded mb-4">
+                {dobError}
+              </div>
+            )}
+            
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setShowDobModal(false)}
+                className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDownload}
+                disabled={!dobInput || verifying}
+                className={`px-4 py-2 flex items-center gap-2 rounded
+                  ${!dobInput || verifying
+                    ? 'bg-green-700 text-gray-300 cursor-not-allowed'
+                    : 'bg-green-500 text-white hover:bg-green-600'
+                  }`}
+              >
+                {verifying ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-t-transparent border-white rounded-full animate-spin"></span>
+                    Verifying...
+                  </>
+                ) : (
+                  <>
+                    <FaDownload />
+                    Download
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

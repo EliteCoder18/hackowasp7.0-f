@@ -792,21 +792,23 @@ app.post('/verify-download-access', express.json(), async (req, res) => {
       return res.status(400).json({ error: 'Hash and date of birth are required' });
     }
     
+    // Validate hash format
     if (!/^[a-f0-9]{64}$/i.test(hash)) {
       return res.status(400).json({ error: 'Invalid hash format' });
     }
     
+    // Get file info to check the DOB
     const actor = await createActor();
     const result = await actor.get_hash_info(hash);
     
-    if (!result) {
+    if (!result || (Array.isArray(result) && result.length === 0)) {
       return res.status(404).json({ error: 'File not found' });
     }
     
     const hashInfo = Array.isArray(result) && result.length > 0 ? result[0] : result;
     
-    // Verify the DOB matches
-    if (hashInfo.ownerDob !== dob) {
+    // Check if DOB matches
+    if (hashInfo.owner_dob !== dob) {
       return res.status(403).json({ 
         error: 'Access denied. Date of birth does not match.',
         verified: false
@@ -839,7 +841,7 @@ app.get('/get-all-files', async (req, res) => {
     // Call the get_all_files method on the canister
     try {
       const actor = await createActor();
-      const result = await actor.get_all_files(); // This assumes the canister has a get_all_files method
+      const result = await actor.get_all_files();
       
       // Process the result to handle BigInt serialization
       const files = result.map(item => {
@@ -861,6 +863,11 @@ app.get('/get-all-files', async (req, res) => {
         return {
           hash: item[0], // The key is the hash
           name: cleanName,
+          description: file.description || '',
+          ownerName: file.owner_name || '',
+          royaltyFee: file.royalty_fee || '0',
+          hasRoyalty: file.has_royalty || false,
+          contactDetails: file.contact_details || '',
           timestamp,
           user: file.user ? 
                 (file.user.__principal__ ? file.user.__principal__ : file.user.toString()) 
