@@ -448,14 +448,15 @@ app.post('/verify', express.json(), async (req, res) => {
             message: 'File content has been verified on the blockchain!',
             hash,
             name: cleanName,
-            ownerName: global.__lastHashInfo?.owner_name || global.__lastHashInfo?.ownerName || '',
+            // Ensure description is being sent correctly
             description: global.__lastHashInfo?.description || '',
+            ownerName: global.__lastHashInfo?.owner_name || global.__lastHashInfo?.ownerName || '',
             royaltyFee: global.__lastHashInfo?.royalty_fee || global.__lastHashInfo?.royaltyFee || '0',
             hasRoyalty: global.__lastHashInfo?.has_royalty || global.__lastHashInfo?.hasRoyalty || false, 
             contactDetails: global.__lastHashInfo?.contact_details || global.__lastHashInfo?.contactDetails || '',
             user: 'Unknown (recovered)',
             timestamp: originalTimestamp || Date.now(),
-            verificationMethod: 'file' // This should be 'file', not registration-test
+            verificationMethod: 'registration-test'
           });
         }
         

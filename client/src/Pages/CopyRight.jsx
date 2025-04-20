@@ -163,9 +163,66 @@ const Register = () => {
       if (error.response?.status === 413) {
         setMessage('Error: File too large - maximum size is 2MB');
       } else if (error.response?.status === 409) {
-        // Already registered
+        // Already registered - show complete file info
         setHash(error.response.data.hash || '');
-        setMessage(`This file is already registered.`);
+        
+        // Fetch the complete file information for the already registered file
+        try {
+          const verifyResponse = await axios.post(`${API_BASE_URL}/verify`, {
+            hash: error.response.data.hash
+          });
+          
+          if (verifyResponse.data.verified) {
+            const fileInfo = verifyResponse.data;
+            // Create a rich message with all the details
+            setMessage(
+              <div className="space-y-3">
+                <div className="text-yellow-300 font-medium text-lg">This file is already registered!</div>
+                
+                <div className="bg-gray-700 p-4 rounded-lg mt-3">
+                  <h3 className="font-medium text-blue-300 mb-2">File Details:</h3>
+                  
+                  <div className="space-y-2 text-gray-300">
+                    <div><span className="font-medium">Name:</span> {fileInfo.name}</div>
+                    
+                    {fileInfo.description && (
+                      <div><span className="font-medium">Description:</span> {fileInfo.description}</div>
+                    )}
+                    
+                    {fileInfo.ownerName && (
+                      <div><span className="font-medium">Owner:</span> {fileInfo.ownerName}</div>
+                    )}
+                    
+                    <div><span className="font-medium">Registered on:</span> {new Date(fileInfo.timestamp).toLocaleString()}</div>
+                    
+                    {fileInfo.hasRoyalty && (
+                      <div className="mt-3 p-3 bg-gray-600 rounded-md">
+                        <div className="text-yellow-300 font-medium">
+                          Royalty Required: ${parseFloat(fileInfo.royaltyFee).toFixed(2)}
+                        </div>
+                        
+                        {fileInfo.contactDetails && (
+                          <div className="mt-2">
+                            <span className="font-medium">Contact:</span> {fileInfo.contactDetails}
+                          </div>
+                        )}
+                        
+                        <div className="text-xs text-gray-400 mt-1">
+                          Please contact the owner to arrange payment before using this asset.
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          } else {
+            setMessage(`This file is already registered with hash: ${error.response.data.hash}`);
+          }
+        } catch (verifyError) {
+          console.error('Error fetching registered file details:', verifyError);
+          setMessage(`This file is already registered with hash: ${error.response.data.hash}`);
+        }
       } else {
         setMessage('Error: ' + (error.response?.data?.error || 'Unknown error'));
       }
@@ -514,7 +571,8 @@ const Verify = () => {
   const renderVerificationResult = () => {
     if (!result) return null;
     
-    // Verified result - show more detailed information
+    console.log("Full verification result:", result); // Add this to debug what's coming from the backend
+    
     if (result.verified) {
       const isUnreliable = 
         !result.name || result.name === 'Unknown' || 
@@ -534,51 +592,73 @@ const Verify = () => {
       
       return (
         <div className="mt-4 p-4 bg-green-100 border-l-4 border-green-500 rounded">
-          <div className="font-bold text-green-700">✓ Content Verified</div>
-          <div className="mt-2">
+          <div className="font-bold text-green-700 text-lg">✓ Content Verified</div>
+          <div className="mt-4">
             <div className="text-xl font-semibold">{result.name}</div>
             
+            {/* Make description more prominent */}
             {result.description && (
-              <div className="text-gray-700 mt-1 italic">
-                {result.description}
+              <div className="mt-3 p-3 bg-blue-50 border border-blue-100 rounded-md">
+                <div className="font-medium text-blue-800 mb-1">Description:</div>
+                <div className="text-gray-700 italic">"{result.description}"</div>
               </div>
             )}
             
-            {result.ownerName && (
-              <div className="flex items-center mt-1 text-gray-600">
-                <span className="font-medium">Owner:</span> {result.ownerName}
+            {!result.description && (
+              <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-md">
+                <div className="text-gray-500 italic">No description provided</div>
               </div>
             )}
             
-            <div className="text-sm text-gray-600 mt-1">
-              Registered on: {formatTimestamp(result.timestamp)}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+              {result.ownerName && (
+                <div className="flex items-center text-gray-700">
+                  <span className="font-medium mr-2">Owner:</span> {result.ownerName}
+                </div>
+              )}
+              
+              <div className="text-gray-700">
+                <span className="font-medium mr-2">Registered on:</span> 
+                {formatTimestamp(result.timestamp)}
+              </div>
             </div>
             
             {result.hasRoyalty && (
-              <div className="mt-3 p-3 bg-yellow-50 rounded-md">
-                <div className="font-medium text-yellow-800">
+              <div className="mt-4 p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-md">
+                <div className="font-semibold text-yellow-800 text-lg">
                   Royalty Required: ${parseFloat(result.royaltyFee).toFixed(2)}
                 </div>
                 
                 {result.contactDetails && (
-                  <div className="text-sm text-gray-700 mt-2">
-                    <strong>Contact the owner:</strong> {result.contactDetails}
+                  <div className="text-gray-700 mt-2 p-2 bg-white rounded">
+                    <div className="font-medium mb-1">Contact the owner:</div>
+                    {result.contactDetails}
                   </div>
                 )}
                 
-                <div className="text-xs text-gray-500 mt-1">
+                <div className="text-gray-700 mt-2 text-sm">
                   Please contact the owner to arrange payment before using this asset.
                 </div>
               </div>
             )}
             
-            {/* Rest of component stays the same */}
+            {/* File content preview and download options remain the same */}
+            {fileContent && (
+              <div className="mt-4">
+                <button 
+                  onClick={handleDownload}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium"
+                >
+                  Download Original File
+                </button>
+              </div>
+            )}
           </div>
         </div>
       );
     }
     
-    // Not verified result
+    // Not verified result remains the same
     return (
       <div className="mt-4 p-4 bg-red-100 border-l-4 border-red-500 rounded">
         <div className="font-bold text-red-700">✗ Not Verified</div>
