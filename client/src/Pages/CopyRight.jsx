@@ -790,7 +790,7 @@ const Sidebar = ({ principal, onLogout, recentFiles, onRefresh }) => {
   };
 
   return (
-    <div className="h-screen w-80 bg-gray-900 text-white p-6 overflow-y-auto">
+    <div className="h-12/13 rounded-xl w-80 bg-gray-900 text-white p-6 overflow-y-auto">
       {/* User Section */}
       <div className="mb-10 mt-1">
         <h2 className="text-xl font-bold mb-2">Hi User</h2>
@@ -801,7 +801,7 @@ const Sidebar = ({ principal, onLogout, recentFiles, onRefresh }) => {
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
         <button onClick={()=>{
-          window.location.href = '/files';
+          window.location.href = '/app/files';
          }}>
            <h3 className="text-sm font-medium bg-gray-300 p-2 rounded-lg text-gray-800 uppercase">Recent Files</h3>
            </button>
@@ -844,7 +844,7 @@ const Sidebar = ({ principal, onLogout, recentFiles, onRefresh }) => {
       {/* Logout Button */}
       <button
         onClick={onLogout}
-        className="w-full bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md transition duration-200"
+        className="w-64 absolute bottom-1 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md transition duration-200"
       >
         Logout
       </button>
