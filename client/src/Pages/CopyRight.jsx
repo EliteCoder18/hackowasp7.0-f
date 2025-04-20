@@ -90,21 +90,58 @@ const Register = () => {
   const [hasRoyalty, setHasRoyalty] = useState(false);
   const [royaltyFee, setRoyaltyFee] = useState('0');
   const [contactDetails, setContactDetails] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = React.useRef(null);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
+    processFile(selectedFile);
+  };
+
+  const processFile = (selectedFile) => {
     if (selectedFile) {
       // Check file size (2MB limit)
       const maxSizeBytes = 2 * 1024 * 1024;
       if (selectedFile.size > maxSizeBytes) {
         setMessage('File size exceeds the 2MB limit. Please choose a smaller file.');
         setFile(null);
-        e.target.value = null; // Reset the file input
+        if (fileInputRef.current) fileInputRef.current.value = null; // Reset the file input
         return;
       }
       setFile(selectedFile);
       setFileName(selectedFile.name);
+      setMessage('');
     }
+  };
+
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    
+    const droppedFile = e.dataTransfer.files[0];
+    processFile(droppedFile);
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current.click();
   };
 
   const handleRegister = async () => {
@@ -237,135 +274,206 @@ const Register = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-4">
-        <div>
-          <label className="block text-gray-300 mb-2">Choose File</label>
-          <input
-            type="file"
-            onChange={handleFileChange}
-            className="w-full bg-gray-800 text-gray-300 rounded-md p-2 border border-gray-700"
-          />
-        </div>
+    <div className="space-y-8">
+      {/* File upload area with drag and drop */}
+      <div 
+        className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 
+          ${isDragging ? 'border-blue-400 bg-blue-50/10' : 'border-gray-600 hover:border-blue-300'} 
+          ${file ? 'bg-gray-800/50' : ''}`}
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+        onClick={triggerFileInput}
+      >
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          className="hidden"
+        />
         
-        <div>
-          <label className="block text-gray-300 mb-2">File Name:</label>
-          <input
-            type="text"
-            value={fileName}
-            onChange={(e) => setFileName(e.target.value)}
-            placeholder="Enter a name"
-            className="w-full bg-gray-800 text-gray-300 rounded-md p-2 border border-gray-700"
-          />
+        {!file ? (
+          <div className="space-y-4 cursor-pointer">
+            <div className="mx-auto w-16 h-16 flex items-center justify-center rounded-full bg-gray-800 text-blue-400">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+            </div>
+            <div className="text-gray-300 font-medium text-lg">Drag and drop your file here</div>
+            <div className="text-gray-500 text-sm">or click to browse</div>
+            <div className="text-xs text-gray-600">Maximum file size: 2MB</div>
+          </div>
+        ) : (
+          <div className="space-y-3 cursor-pointer">
+            <div className="flex items-center justify-center">
+              <div className="bg-gray-700 p-3 rounded-lg inline-flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span className="text-gray-200 font-medium truncate max-w-xs">{file.name}</span>
+              </div>
+            </div>
+            <div className="text-green-400">File selected - click to change</div>
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-6">
+          <div className="bg-gray-800 p-5 rounded-lg border border-gray-700 shadow-md">
+            <h3 className="text-lg font-medium text-blue-400 mb-4">File Details</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-gray-300 mb-2 font-medium">File Name</label>
+                <input
+                  type="text"
+                  value={fileName}
+                  onChange={(e) => setFileName(e.target.value)}
+                  placeholder="Enter a name"
+                  className="w-full bg-gray-900 text-gray-300 rounded-lg p-3 border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all duration-200"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-300 mb-2 font-medium">Description</label>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Enter a description for this file"
+                  className="w-full bg-gray-900 text-gray-300 rounded-lg p-3 border border-gray-700 h-28 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all duration-200"
+                />
+              </div>
+            </div>
+          </div>
         </div>
-        
-        <div>
-          <label className="block text-gray-300 mb-2">Description:</label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Enter a description for this file"
-            className="w-full bg-gray-800 text-gray-300 rounded-md p-2 border border-gray-700 h-24"
-          />
+
+        <div className="space-y-6">
+          <div className="bg-gray-800 p-5 rounded-lg border border-gray-700 shadow-md">
+            <h3 className="text-lg font-medium text-blue-400 mb-4">Ownership Information</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-gray-300 mb-2 font-medium">Owner Name</label>
+                <input
+                  type="text"
+                  value={ownerName}
+                  onChange={(e) => setOwnerName(e.target.value)}
+                  placeholder="Enter the owner's name"
+                  className="w-full bg-gray-900 text-gray-300 rounded-lg p-3 border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all duration-200"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-300 mb-2 font-medium">Owner Date of Birth (passkey)</label>
+                <input
+                  type="date"
+                  value={ownerDob}
+                  onChange={(e) => setOwnerDob(e.target.value)}
+                  className="w-full bg-gray-900 text-gray-300 rounded-lg p-3 border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all duration-200"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  This will be used as a passkey for others to download this file
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
-        
-        <div>
-          <label className="block text-gray-300 mb-2">Owner Name:</label>
-          <input
-            type="text"
-            value={ownerName}
-            onChange={(e) => setOwnerName(e.target.value)}
-            placeholder="Enter the owner's name"
-            className="w-full bg-gray-800 text-gray-300 rounded-md p-2 border border-gray-700"
-            required
-          />
-        </div>
-        
-        <div>
-          <label className="block text-gray-300 mb-2">Owner Date of Birth (required as passkey):</label>
-          <input
-            type="date"
-            value={ownerDob}
-            onChange={(e) => setOwnerDob(e.target.value)}
-            className="w-full bg-gray-800 text-gray-300 rounded-md p-2 border border-gray-700"
-            required
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            This will be used as a passkey for others to download this file
-          </p>
-        </div>
-        
-        <div className="mt-4">
-          <div className="flex items-center mb-2">
-            <input
-              type="checkbox"
-              id="royaltyOption"
-              checked={hasRoyalty}
-              onChange={(e) => setHasRoyalty(e.target.checked)}
-              className="mr-2"
-            />
-            <label htmlFor="royaltyOption" className="text-gray-300">
-              Enable royalty service for this file
+      </div>
+
+      {/* Royalty Section */}
+      <div className="bg-gray-800 p-5 rounded-lg border border-gray-700 shadow-md">
+        <div className="flex items-center mb-4">
+          <div className="form-control">
+            <label className="flex cursor-pointer items-center gap-2">
+              <input
+                type="checkbox"
+                id="royaltyOption"
+                checked={hasRoyalty}
+                onChange={(e) => setHasRoyalty(e.target.checked)}
+                className="checkbox border-gray-600 checked:border-blue-500"
+              />
+              <span className="text-gray-300 font-medium ml-2">Enable royalty service for this file</span>
             </label>
           </div>
         </div>
         
         {hasRoyalty && (
-          <div className="space-y-4 p-4 bg-gray-800 rounded-md border border-gray-700">
-            <div>
-              <label className="block text-gray-300 mb-2">Royalty Fee (USD):</label>
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={royaltyFee}
-                onChange={(e) => setRoyaltyFee(e.target.value)}
-                placeholder="Enter the royalty amount"
-                className="w-full bg-gray-700 text-gray-300 rounded-md p-2 border border-gray-600"
-              />
+          <div className="space-y-4 p-4 bg-gray-900 rounded-lg border border-gray-700 mt-4 animate-fadeIn">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-gray-300 mb-2 font-medium">Royalty Fee (USD)</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={royaltyFee}
+                  onChange={(e) => setRoyaltyFee(e.target.value)}
+                  placeholder="Enter the royalty amount"
+                  className="w-full bg-gray-800 text-gray-300 rounded-lg p-3 border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all duration-200"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-300 mb-2 font-medium">Contact Details</label>
+                <input
+                  type="text"
+                  value={contactDetails}
+                  onChange={(e) => setContactDetails(e.target.value)}
+                  placeholder="Email or phone number"
+                  className="w-full bg-gray-800 text-gray-300 rounded-lg p-3 border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all duration-200"
+                />
+              </div>
             </div>
-            
-            <div>
-              <label className="block text-gray-300 mb-2">Contact Details:</label>
-              <input
-                type="text"
-                value={contactDetails}
-                onChange={(e) => setContactDetails(e.target.value)}
-                placeholder="Email or phone number"
-                className="w-full bg-gray-700 text-gray-300 rounded-md p-2 border border-gray-600"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                This will be visible to users who wish to contact you about using this asset
-              </p>
-            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              The contact information will be visible to users who wish to contact you about using this asset
+            </p>
           </div>
         )}
       </div>
 
+      {/* Action Button */}
       <button
         onClick={handleRegister}
         disabled={isUploading || !file}
-        className={`w-full bg-blue-600 text-white py-3 rounded-md font-medium
-          ${(isUploading || !file) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'}`}
+        className={`w-full bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-4 rounded-lg font-medium text-lg shadow-lg transform transition-all duration-200
+          ${(isUploading || !file) 
+            ? 'opacity-50 cursor-not-allowed' 
+            : 'hover:from-blue-700 hover:to-indigo-800 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0'}`}
       >
-        {isUploading ? 'Registering...' : 'Register'}
+        {isUploading ? (
+          <div className="flex items-center justify-center">
+            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Registering on Blockchain...
+          </div>
+        ) : (
+          <>Register on Blockchain</>
+        )}
       </button>
 
+      {/* Messages and Results */}
       {message && (
-        <div className="p-4 bg-gray-800 rounded-md">
-          <p className="text-gray-300">{message}</p>
+        <div className="p-5 bg-gray-800 rounded-lg border border-gray-700 shadow-md">
+          <div className="text-gray-300">{message}</div>
         </div>
       )}
       
       {hash && (
-        <div className="p-4 bg-gray-800 rounded-md">
-          <p className="text-gray-300 font-medium mb-2">Generated Hash:</p>
-          <div className="flex items-center space-x-2">
-            <code className="flex-1 bg-black p-2 rounded text-sm text-gray-300 break-all">{hash}</code>
+        <div className="p-5 bg-gray-800 rounded-lg border border-gray-700 shadow-md">
+          <h3 className="text-lg font-medium text-blue-400 mb-3">Generated Hash</h3>
+          <div className="flex items-center space-x-2 bg-gray-900 p-3 rounded-lg">
+            <code className="flex-1 text-sm text-gray-300 break-all font-mono">{hash}</code>
             <button
               onClick={copyToClipboard}
-              className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded-md text-sm"
+              className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-md text-sm transition-colors duration-200 flex items-center"
             >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+              </svg>
               Copy
             </button>
           </div>
