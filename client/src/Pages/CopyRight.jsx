@@ -152,48 +152,52 @@ const Register = () => {
   };
 
   return (
-    <div className="bg-white p-6 rounded shadow">
-      <h2 className="text-2xl mb-4">Register File</h2>
-      
-      <div className="mb-4">
-        <input
-          type="file"
-          onChange={handleFileChange}
-          className="mb-4 w-full p-2 border rounded"
-        />
+    <div className="space-y-6">
+      <div className="space-y-4">
+        <div>
+          <label className="block text-gray-300 mb-2">Choose File</label>
+          <input
+            type="file"
+            onChange={handleFileChange}
+            className="w-full bg-gray-800 text-gray-300 rounded-md p-2 border border-gray-700"
+          />
+        </div>
         
-        <div className="mb-4">
-          <label className="block text-gray-700 mb-2">File Name/Description:</label>
+        <div>
+          <label className="block text-gray-300 mb-2">File Name/Description:</label>
           <input
             type="text"
             value={fileName}
             onChange={(e) => setFileName(e.target.value)}
             placeholder="Enter a name or description"
-            className="w-full p-2 border rounded"
+            className="w-full bg-gray-800 text-gray-300 rounded-md p-2 border border-gray-700"
           />
         </div>
-
-        <button
-          onClick={handleRegister}
-          disabled={isUploading || !file}
-          className={`bg-blue-500 text-white px-4 py-2 rounded w-full ${
-            (isUploading || !file) ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
-        >
-          {isUploading ? 'Registering on blockchain...' : 'Register'}
-        </button>
       </div>
-      
-      {message && <p className="mt-4 text-center font-medium">{message}</p>}
+
+      <button
+        onClick={handleRegister}
+        disabled={isUploading || !file}
+        className={`w-full bg-blue-600 text-white py-3 rounded-md font-medium
+          ${(isUploading || !file) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'}`}
+      >
+        {isUploading ? 'Registering...' : 'Register'}
+      </button>
+
+      {message && (
+        <div className="p-4 bg-gray-800 rounded-md">
+          <p className="text-gray-300">{message}</p>
+        </div>
+      )}
       
       {hash && (
-        <div className="mt-4 p-4 bg-gray-100 rounded">
-          <p className="text-sm font-bold mb-1">Generated Hash:</p>
-          <div className="flex items-center">
-            <p className="font-mono text-xs break-all mr-2">{hash}</p>
+        <div className="p-4 bg-gray-800 rounded-md">
+          <p className="text-gray-300 font-medium mb-2">Generated Hash:</p>
+          <div className="flex items-center space-x-2">
+            <code className="flex-1 bg-black p-2 rounded text-sm text-gray-300 break-all">{hash}</code>
             <button
               onClick={copyToClipboard}
-              className="bg-gray-200 hover:bg-gray-300 text-sm px-2 py-1 rounded"
+              className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded-md text-sm"
             >
               Copy
             </button>
@@ -220,133 +224,7 @@ const Verify = () => {
     }
   }, [result, fileContent]);
 
-  const handleVerifyHash = async () => {
-    if (!hash.trim()) return;
-    
-    setIsVerifying(true);
-    setResult(null);
-    setFileContent(null);
-    
-    try {
-      console.log('Verifying hash:', hash);
-      
-      const response = await axios.post(`${API_BASE_URL}/verify`, { 
-        hash,
-        fetchContent: true // Request file content from blockchain
-      });
-      
-      console.log('Verification API response:', response.data);
-      
-      setResult(response.data);
-      
-      // If file content was returned from the blockchain
-      if (response.data.fileContent) {
-        console.log('File content received, length:', response.data.fileContent.length);
-        setFileContent(response.data.fileContent);
-      } else {
-        console.log('No file content in response');
-      }
-      
-    } catch (error) {
-      console.error('Verification error:', error);
-      
-      // Check if we got an error response with data
-      if (error.response) {
-        console.log('Error response status:', error.response.status);
-        console.log('Error response data:', error.response.data);
-        
-        const errorData = error.response.data || {};
-        
-        setResult({
-          verified: false,
-          message: errorData.message || 'Hash not found',
-          error: errorData.error,
-          hash
-        });
-      } else {
-        // Network error or unexpected error
-        setResult({
-          verified: false,
-          message: 'Connection error',
-          error: error.message,
-          hash
-        });
-      }
-    } finally {
-      setIsVerifying(false);
-    }
-  };
-
-  const handleVerifyFile = async () => {
-    if (!file) return;
-    
-    console.log('Verifying file:', file.name, 'Size:', file.size, 'Type:', file.type);
-    
-    setIsVerifying(true);
-    setResult(null);
-    setFileContent(null); // Reset file content when verifying a new file
-    
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      console.log('Sending file for verification...');
-      
-      // For better troubleshooting, add:
-      console.log('POST URL:', `${API_BASE_URL}/verify-file`);
-      
-      // Add timeout and additional options for more reliable uploads
-      const response = await axios.post(`${API_BASE_URL}/verify-file`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        },
-        timeout: 60000, // Increase timeout to 60 seconds for larger files
-        onUploadProgress: (progressEvent) => {
-          console.log('Upload progress:', Math.round((progressEvent.loaded * 100) / progressEvent.total) + '%');
-        }
-      });
-      
-      console.log('File verification response received:', response.status);
-      console.log('File verification response data:', response.data);
-      
-      setResult(response.data);
-      // Set the hash value from the response
-      if (response.data.hash) {
-        setHash(response.data.hash);
-      }
-    } catch (error) {
-      console.error('File verification error:', error);
-      // More detailed error logging
-      if (error.response) {
-        console.log('Error response status:', error.response.status);
-        console.log('Error response data:', error.response.data);
-        setResult({
-          verified: false,
-          message: error.response.data.message || 'Error verifying file',
-          error: error.response.data.error,
-          hash: error.response.data.hash
-        });
-      } else if (error.request) {
-        // Request was made but no response received
-        console.log('No response received:', error.request);
-        setResult({
-          verified: false,
-          message: 'No response from server. The file may be too large or the server may be unavailable.',
-          error: error.message
-        });
-      } else {
-        // Error in setting up the request
-        setResult({
-          verified: false,
-          message: 'Error preparing request',
-          error: error.message
-        });
-      }
-    } finally {
-      setIsVerifying(false);
-    }
-  };
-
+ 
   const formatTimestamp = (timestamp) => {
     if (!timestamp) return 'Unknown';
     
@@ -522,194 +400,149 @@ const Verify = () => {
     }
   };
 
-  const renderVerificationResult = () => {
-    if (!result) return null;
-    
-    // Special handling for "Unknown" name and user - likely a false positive
-    // Skip this check if verification was done by file upload, which is more reliable
-    if (result.verified && 
-        result.verificationMethod !== 'file' && 
-        (result.name === 'Unknown (file name not recovered)' || result.name === 'Unknown') && 
-        (result.user === 'Unknown (recovered)' || result.user === 'Unknown')) {
-      
-      return (
-        <div className="mt-4 p-4 bg-yellow-100 border-l-4 border-yellow-500 rounded">
-          <div className="font-bold text-yellow-700">⚠️ Verification Unreliable</div>
-          <div className="mt-2">
-            <p>This content cannot be fully verified.</p>
-          </div>
-        </div>
-      );
-    }
 
-    // Verified result - showing name and timestamp
-    if (result.verified) {
-      return (
-        <div className="mt-4 p-4 bg-green-100 border-l-4 border-green-500 rounded">
-          <div className="font-bold text-green-700">✓ Content Verified</div>
-          <div className="mt-2">
-            <div className="text-xl font-semibold">{result.name}</div>
-            <div className="text-sm text-gray-600 mt-1">
-              Registered on: {formatTimestamp(result.timestamp)}
-            </div>
-            
-            {/* Only show download and preview options for file verification */}
-            {result.verificationMethod === 'file' && fileContent && (
-              <div className="mt-2">
-                <button 
-                  onClick={handleDownload}
-                  className="bg-blue-500 text-white px-3 py-1 rounded text-sm mr-2"
-                >
-                  Download Original File
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      );
-    }
-    
-    // Not verified result
-    return (
-      <div className="mt-4 p-4 bg-red-100 border-l-4 border-red-500 rounded">
-        <div className="font-bold text-red-700">✗ Not Verified</div>
-        <div className="mt-2">
-          <div>{result.message || 'Content not found on the blockchain'}</div>
-        </div>
-      </div>
-    );
+ 
+};
+
+// Modify the Sidebar component
+const Sidebar = ({ principal, onLogout, recentFiles, onRefresh }) => {
+  const [isRotating, setIsRotating] = useState(false);
+
+  const handleRefreshClick = () => {
+    setIsRotating(true);
+    onRefresh();
+    // Reset rotation after animation completes
+    setTimeout(() => setIsRotating(false), 1000);
   };
 
   return (
-    <div className="bg-white p-6 rounded shadow">
-      <h2 className="text-2xl mb-4">Verify Content</h2>
-      
-      <div className="flex space-x-2 mb-4">
-        <button
-          className={`px-4 py-2 rounded ${verifyMethod === 'hash' ? 
-            'bg-blue-500 text-white' : 'bg-gray-200'}`}
-          onClick={() => setVerifyMethod('hash')}
-        >
-          Verify by Hash
-        </button>
-        <button
-          className={`px-4 py-2 rounded ${verifyMethod === 'file' ? 
-            'bg-blue-500 text-white' : 'bg-gray-200'}`}
-          onClick={() => setVerifyMethod('file')}
-        >
-          Verify by File
-        </button>
+    <div className="h-screen w-80 bg-gray-900 text-white p-6 overflow-y-auto">
+      {/* User Section */}
+      <div className="mb-10 mt-1">
+        <h2 className="text-xl font-bold mb-2">Hi User</h2>
+        <p className="text-sm text-gray-400 break-all">{principal}</p>
       </div>
-      
-      {verifyMethod === 'hash' ? (
-        <div className="mb-4">
-          <input
-            type="text"
-            placeholder="Enter hash value"
-            value={hash}
-            onChange={(e) => setHash(e.target.value)}
-            className="border p-2 mb-4 w-full rounded"
-          />
+
+      {/* Recent Files Section with Refresh Button */}
+      <div className="mb-8">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-sm font-medium text-gray-400 uppercase">Recent Files</h3>
           <button
-            onClick={handleVerifyHash}
-            disabled={isVerifying || !hash.trim()}
-            className={`bg-blue-500 text-white px-4 py-2 rounded w-full ${
-              (isVerifying || !hash.trim()) ? 'opacity-50 cursor-not-allowed' : ''
+            onClick={handleRefreshClick}
+            className={`p-2 text-gray-400 hover:text-white transition-colors ${
+              isRotating ? 'animate-spin' : ''
             }`}
+            disabled={isRotating}
+            title="Refresh files"
           >
-            {isVerifying ? 'Verifying...' : 'Verify Hash'}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
           </button>
         </div>
-      ) : (
-        <div className="mb-4">
-          <input
-            type="file"
-            onChange={(e) => setFile(e.target.files[0])}
-            className="mb-4 w-full border p-2 rounded"
-          />
-          <button
-            onClick={handleVerifyFile}
-            disabled={isVerifying || !file}
-            className={`bg-blue-500 text-white px-4 py-2 rounded w-full ${
-              (isVerifying || !file) ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
-          >
-            {isVerifying ? 'Verifying...' : 'Verify File'}
-          </button>
+        <div className="space-y-3">
+          {recentFiles?.slice(0, 5).map((file) => (
+            <div key={file.hash} className="bg-gray-800 rounded-lg p-3">
+              <p className="text-sm font-medium truncate">{file.name}</p>
+              <p className="text-xs text-gray-400 mt-1">
+                {new Date(file.timestamp).toLocaleDateString()}
+              </p>
+            </div>
+          ))}
         </div>
-      )}
-      
-      {renderVerificationResult()}
-      {result && result.verified && fileContent && renderFilePreview()}
-      {result && (
-        <div className="mt-4 text-right">
-          <button 
-            onClick={troubleshootVerification}
-            className="text-xs text-gray-500 underline"
-          >
-            Troubleshoot
-          </button>
-          {result.debugMessage && (
-            <p className="text-xs text-gray-600 mt-1">{result.debugMessage}</p>
-          )}
-        </div>
-      )}
+      </div>
+
+      {/* Logout Button */}
+      <button
+        onClick={onLogout}
+        className="w-full bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md transition duration-200"
+      >
+        Logout
+      </button>
     </div>
   );
 };
 
+// Update the Copyright component to include the refresh handler
 const Copyright = () => {
   const [activeTab, setActiveTab] = useState('register');
   const { isAuthenticated, principal, logout } = useContext(AuthContext);
   const navigate = useNavigate();
+  const [recentFiles, setRecentFiles] = useState([]);
   
+  // Add this useEffect to fetch recent files
+  useEffect(() => {
+    const fetchRecentFiles = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/get-all-files`);
+        setRecentFiles(response.data);
+      } catch (error) {
+        console.error('Error fetching recent files:', error);
+      }
+    };
+
+    fetchRecentFiles();
+  }, []);
+
   const handleLogout = async () => {
     await logout();
     navigate('/login');
   };
-  
+
+  const handleRefresh = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/get-all-files`);
+      setRecentFiles(response.data);
+    } catch (error) {
+      console.error('Error refreshing files:', error);
+    }
+  };
+
   return (
-    <div className="container mx-auto p-4 max-w-2xl">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">ProofNest</h1>
-        <div className="flex items-center">
-          <span className="mr-4 text-sm text-green-600">
-            Logged in as: {principal?.substring(0, 10)}...
-          </span>
-          <button 
-            onClick={handleLogout} 
-            className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1 rounded text-sm"
-          >
-            Logout
-          </button>
-        </div>
+    <div className="min-h-screen bg-black flex">
+      {/* Sidebar */}
+      <div className="flex-none">
+        <Sidebar 
+          principal={principal}
+          onLogout={handleLogout}
+          recentFiles={recentFiles}
+          onRefresh={handleRefresh}
+        />
       </div>
-      
-      <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
-        <div className="flex border-b">
-          <button
-            className={`flex-1 px-4 py-3 text-center font-medium ${
-              activeTab === 'register' ? 'bg-blue-500 text-white' : 'bg-gray-100'
-            }`}
-            onClick={() => setActiveTab('register')}
-          >
-            Register
-          </button>
-          <button
-            className={`flex-1 px-4 py-3 text-center font-medium ${
-              activeTab === 'verify' ? 'bg-blue-500 text-white' : 'bg-gray-100'
-            }`}
-            onClick={() => setActiveTab('verify')}
-          >
-            Verify
-          </button>
+
+      {/* Main Content */}
+      <div className="flex-1 p-8">
+        <div className="max-w-5xl mx-auto">
+          {/* Tabs */}
+          <div className="flex space-x-4 mb-6">
+         
+           
+          </div>
+
+          {/* Content Area */}
+          <div className="bg-gray-900 rounded-lg p-8">
+            <h2 className="text-2xl font-bold mb-6 text-white">
+              {activeTab === 'register' ? 'Register File' : 'Verify'}
+            </h2>
+            {activeTab === 'register' ? <Register /> : <Verify />}
+          </div>
+
+          {/* Footer */}
+          <div className="text-center text-gray-600 text-sm mt-8">
+            © {new Date().getFullYear()} ProofNest - Blockchain Content Verification
+          </div>
         </div>
-        <div className="p-6">
-          {activeTab === 'register' ? <Register /> : <Verify />}
-        </div>
-      </div>
-      <div className="text-center text-gray-600 text-sm">
-        &copy; {new Date().getFullYear()} ProofNest - Blockchain Content Verification
       </div>
     </div>
   );
