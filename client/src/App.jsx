@@ -7,7 +7,8 @@ import About from './Pages/About';
 import Feedback from './Pages/Feedback';
 import ContactSupport from './Pages/Contact';
 import Login from './Pages/Login';
-import Copyright from './Pages/Copyright';
+import Copyright from './Pages/CopyRight';
+import FilesList from './Pages/FilesList';
 
 // Context for authentication
 export const AuthContext = React.createContext();
@@ -109,6 +110,7 @@ function App() {
               </ProtectedRoute>
             } 
           />
+          <Route path="/files" element={<FilesList />} />
           <Route path="/" element={<Navigate to="/login" />} />
         </Routes>
       </AuthProvider>

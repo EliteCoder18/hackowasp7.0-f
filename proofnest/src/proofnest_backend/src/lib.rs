@@ -75,4 +75,25 @@ fn get_hash_metadata(hash: String) -> Option<HashInfo> {
     })
 }
 
+// Add a function to get all files without their content
+#[query]
+fn get_all_files() -> Vec<(String, HashInfo)> {
+    HASH_MAP.with(|map| {
+        let map = map.borrow();
+        map.iter()
+            .map(|(k, v)| {
+                // Create a copy with content removed to save bandwidth
+                let hash_info = HashInfo {
+                    user: v.user,
+                    timestamp: v.timestamp,
+                    content: None, // Don't return content in the listing
+                    content_type: v.content_type.clone(),
+                    name: v.name.clone(),
+                };
+                (k.clone(), hash_info)
+            })
+            .collect()
+    })
+}
+
 ic_cdk::export_candid!();

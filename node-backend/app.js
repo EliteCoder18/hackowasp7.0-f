@@ -101,7 +101,13 @@ const createActor = async () => {
           'name': IDL.Text
         }))], 
         ['query']
-      )
+      ),
+      'get_all_files': IDL.Func([], [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Record({
+        'user': IDL.Principal,
+        'timestamp': IDL.Nat64,
+        'content_type': IDL.Text,
+        'name': IDL.Text
+      })))], ['query'])
       // Add other methods as needed
     });
   };
@@ -675,6 +681,104 @@ app.post('/debug-verify', express.json(), async (req, res) => {
       error: error.message,
       stack: error.stack
     });
+  }
+});
+
+// Get all registered files endpoint
+app.get('/get-all-files', async (req, res) => {
+  try {
+    const agent = new HttpAgent({
+      host: 'http://localhost:4943',
+      fetch
+    });
+    
+    await agent.fetchRootKey().catch(console.error);
+    
+    const canisterId = 'uxrrr-q7777-77774-qaaaq-cai';
+    
+    // Call the get_all_files method on the canister
+    try {
+      const actor = await createActor();
+      const result = await actor.get_all_files(); // This assumes the canister has a get_all_files method
+      
+      // Process the result to handle BigInt serialization
+      const files = result.map(item => {
+        const file = item[1]; // The value part of the key-value pair
+        
+        // Convert timestamp from nanoseconds to milliseconds
+        const timestamp = typeof file.timestamp === 'bigint'
+          ? Number(file.timestamp / BigInt(1000000))
+          : typeof file.timestamp === 'string'
+            ? Number(file.timestamp) / 1000000
+            : Date.now();
+        
+        // Clean the name
+        const rawName = file.name || 'Unknown';
+        const cleanName = rawName.includes('/') || rawName.includes('\\')
+          ? rawName.split(/[\/\\]/).pop()
+          : rawName;
+        
+        return {
+          hash: item[0], // The key is the hash
+          name: cleanName,
+          timestamp,
+          user: file.user ? 
+                (file.user.__principal__ ? file.user.__principal__ : file.user.toString()) 
+                : 'Unknown',
+          content_type: file.content_type || 'application/octet-stream'
+        };
+      });
+      
+      res.json(files);
+    } catch (error) {
+      console.error('Error getting all files:', error);
+      res.status(500).json({ 
+        error: error.message || 'Failed to retrieve files' 
+      });
+    }
+  } catch (error) {
+    console.error('Server error in get-all-files:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// File download endpoint
+app.get('/download-file/:hash', async (req, res) => {
+  try {
+    const { hash } = req.params;
+    
+    if (!hash || !/^[a-f0-9]{64}$/i.test(hash)) {
+      return res.status(400).json({ error: 'Invalid hash format' });
+    }
+    
+    const actor = await createActor();
+    const result = await actor.get_hash_info(hash);
+    
+    if (!result) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+    
+    const hashInfo = Array.isArray(result) && result.length > 0 ? result[0] : result;
+    
+    if (!hashInfo.content) {
+      return res.status(404).json({ error: 'File content not available' });
+    }
+    
+    // Convert the content to a Buffer
+    const content = Buffer.from(hashInfo.content);
+    
+    // Set the appropriate content type
+    res.setHeader('Content-Type', hashInfo.content_type || 'application/octet-stream');
+    
+    // Set filename for download
+    const filename = hashInfo.name || 'downloaded-file';
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    
+    // Send the file
+    res.send(content);
+  } catch (error) {
+    console.error('Error downloading file:', error);
+    res.status(500).json({ error: 'Failed to download file' });
   }
 });
 

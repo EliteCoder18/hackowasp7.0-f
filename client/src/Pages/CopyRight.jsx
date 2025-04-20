@@ -553,12 +553,12 @@ const Verify = () => {
               Registered on: {formatTimestamp(result.timestamp)}
             </div>
             
-            {/* Download button if file content is available */}
-            {fileContent && (
+            {/* Only show download and preview options for file verification */}
+            {result.verificationMethod === 'file' && fileContent && (
               <div className="mt-2">
                 <button 
                   onClick={handleDownload}
-                  className="bg-blue-500 text-white px-3 py-1 rounded text-sm"
+                  className="bg-blue-500 text-white px-3 py-1 rounded text-sm mr-2"
                 >
                   Download Original File
                 </button>
@@ -569,7 +569,7 @@ const Verify = () => {
       );
     }
     
-    // Not verified result - keep simple
+    // Not verified result
     return (
       <div className="mt-4 p-4 bg-red-100 border-l-4 border-red-500 rounded">
         <div className="font-bold text-red-700">✗ Not Verified</div>
