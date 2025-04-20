@@ -21,9 +21,7 @@ const Login = () => {
         const authClient = await AuthClient.create();
         const isAuthenticated = await authClient.isAuthenticated();
 
-        if (isAuthenticated) {
-          navigate('/copyright');
-        }
+  
       } catch (error) {
         console.error('Auth check error:', error);
         setError('Failed to check authentication status');

@@ -14,7 +14,7 @@ import MenuItem from '@mui/material/MenuItem';
 import AdbIcon from '@mui/icons-material/Adb';
 import { Link } from 'react-router-dom';
 
-const pages = ["Home",  "Register-Asset", "Verify" , "About", "Contact"];
+const pages = ["Home",  "Verify", "Register-Asset" ,"Files", "About", "Contact"];
 const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
 
 function ResponsiveAppBar() {
@@ -114,12 +114,12 @@ function ResponsiveAppBar() {
                 <MenuItem key={page} onClick={()=>{
                   if(page == "Verify"){
                     console.log(page)
-                    window.location.href =`/verify`;
+                    window.location.href =`/app/verify`;
                     handleCloseNavMenu();
                   }
                   else{
                     console.log(page)
-                 window.location.href =`/${page.toLowerCase()}`
+                 window.location.href =`/app/${page.toLowerCase()}`
                  handleCloseNavMenu();
                   }
                   
@@ -160,12 +160,12 @@ function ResponsiveAppBar() {
                 onClick={()=>{
                   if(page == "Verify"){
                     console.log(page)
-                    window.location.href =`/verify`;
+                    window.location.href =`/app/verify`;
                     handleCloseNavMenu();
                   }
                   else{
                     console.log(page)
-                 window.location.href =`/${page.toLowerCase()}`
+                 window.location.href =`/app/${page.toLowerCase()}`
                  handleCloseNavMenu();
                   }
                 }}

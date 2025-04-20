@@ -11,6 +11,7 @@ import Copyright from './Pages/CopyRight';
 import FilesList from './Pages/FilesList';
 import Verify from './Pages/Verify'
 
+
 // Context for authentication
 export const AuthContext = React.createContext();
 
@@ -84,7 +85,7 @@ const ProtectedRoute = ({ children }) => {
   }
   
   if (!isAuthenticated) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/app/login" />;
   }
   
   return children;
@@ -96,7 +97,8 @@ function App() {
       <AuthProvider>
         <Routes>
           <Route path="/home" element={<Landing />} />
-          <Route path="/" element={<Compiler />}>
+          <Route path='*' element={<Navigate to="/home" replace />} />
+          <Route path="/app" element={<Compiler/> } >
           <Route path="login" element={<Login />} />
             <Route path="about" element={<About />} />
             <Route path="feedback" element={<Feedback />} />
@@ -121,7 +123,6 @@ function App() {
             } 
           />
           </Route>
-          <Route path="/" element={<Navigate to="/login" />} />
         </Routes>
       </AuthProvider>
     </Router>
