@@ -97,40 +97,44 @@ function FilesList() {
       }) : proofnest_backend;
 
       // Get file info with content
-      const fileInfo = await actor.get_hash_info(selectedFile.hash);
-      
+      let fileInfo = await actor.get_hash_info(selectedFile.hash);
+
+      // DFINITY agent returns [value] or [] for opt types
+      if (Array.isArray(fileInfo)) {
+        fileInfo = fileInfo[0];
+      }
+
       if (!fileInfo) {
         setDobError("File not found on the blockchain.");
         return;
       }
-      
-      // Verify DOB
-      if (fileInfo.owner_dob !== dobInput) {
+
+      // Verify DOB (normalize both sides)
+      console.log("Comparing DOBs:", fileInfo.owner_dob, dobInput);
+      if (
+        String(fileInfo.owner_dob).trim() !== String(dobInput).trim()
+      ) {
         setDobError("Verification failed. Please check the date of birth.");
         return;
       }
 
       // If content exists, create a download
       if (fileInfo.content && fileInfo.content.length > 0) {
-        // Convert the array to a Uint8Array
         const uint8Array = new Uint8Array(fileInfo.content);
         const blob = new Blob([uint8Array], { type: fileInfo.content_type });
         const url = URL.createObjectURL(blob);
-        
-        // Create a download link
+
         const a = document.createElement('a');
         a.href = url;
         a.download = fileInfo.name;
         document.body.appendChild(a);
         a.click();
-        
-        // Cleanup
+
         setTimeout(() => {
           document.body.removeChild(a);
           URL.revokeObjectURL(url);
         }, 0);
-        
-        // Close modal
+
         setShowDobModal(false);
       } else {
         setDobError("File content not available.");
