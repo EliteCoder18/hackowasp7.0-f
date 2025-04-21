@@ -18,4 +18,5 @@ service : {
     get_all_files: () -> (vec record { text; HashInfo }) query;
     verify_hash: (text) -> (opt HashInfo) query;
     get_hash_metadata: (text) -> (opt HashInfo) query;
+    get_file_chunk: (text, nat32, nat32) -> (blob) query;
 }

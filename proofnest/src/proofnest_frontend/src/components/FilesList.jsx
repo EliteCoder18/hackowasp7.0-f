@@ -96,14 +96,10 @@ function FilesList() {
         },
       }) : proofnest_backend;
 
-      // Get file info with content
+      // Get file info first (for metadata and DOB verification)
       let fileInfo = await actor.get_hash_info(selectedFile.hash);
-
-      // DFINITY agent returns [value] or [] for opt types
-      if (Array.isArray(fileInfo)) {
-        fileInfo = fileInfo[0];
-      }
-
+      if (Array.isArray(fileInfo)) fileInfo = fileInfo[0];
+      
       if (!fileInfo) {
         setDobError("File not found on the blockchain.");
         return;
@@ -111,44 +107,70 @@ function FilesList() {
 
       // Verify DOB (normalize both sides)
       console.log("Comparing DOBs:", fileInfo.owner_dob, dobInput);
-      if (
-        String(fileInfo.owner_dob).trim() !== String(dobInput).trim()
-      ) {
+      if (String(fileInfo.owner_dob).trim() !== String(dobInput).trim()) {
         setDobError("Verification failed. Please check the date of birth.");
         return;
       }
 
-      if (!fileInfo.content || fileInfo.content.length === 0) {
+      // Download file in chunks
+      const CHUNK_SIZE = 500000; // 500KB chunks
+      const chunks = [];
+      let offset = 0;
+      let totalSize = 0;
+      
+      console.log("Starting chunked download...");
+      
+      // Loop to download all chunks
+      while (true) {
+        const chunk = await actor.get_file_chunk(selectedFile.hash, offset, CHUNK_SIZE);
+        console.log(`Downloaded chunk: offset=${offset}, size=${chunk.length}`);
+        
+        if (chunk.length === 0) break; // No more chunks
+        
+        chunks.push(new Uint8Array(chunk));
+        offset += chunk.length;
+        totalSize += chunk.length;
+        
+        // If we got less than the chunk size, we're done
+        if (chunk.length < CHUNK_SIZE) break;
+      }
+
+      console.log(`Download complete: ${chunks.length} chunks, total size ${totalSize} bytes`);
+      
+      if (chunks.length === 0 || totalSize === 0) {
         setDobError("File content not available.");
         return;
       }
 
-      // If content exists, create a download
-      if (fileInfo.content && fileInfo.content.length > 0) {
-        console.log("Downloading file with content length:", fileInfo.content?.length);
-        console.log("Content length received from backend:", fileInfo.content?.length);
-        const uint8Array = new Uint8Array(fileInfo.content);
-        const blob = new Blob([uint8Array], { type: fileInfo.content_type });
-        const url = URL.createObjectURL(blob);
-
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileInfo.name;
-        document.body.appendChild(a);
-        a.click();
-
-        setTimeout(() => {
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-        }, 0);
-
-        setShowDobModal(false);
-      } else {
-        setDobError("File content not available.");
+      // Combine chunks into a single Uint8Array
+      const fileContent = new Uint8Array(totalSize);
+      let position = 0;
+      
+      for (const chunk of chunks) {
+        fileContent.set(chunk, position);
+        position += chunk.length;
       }
+
+      // Create the download
+      const blob = new Blob([fileContent], { type: fileInfo.content_type || 'application/octet-stream' });
+      const url = URL.createObjectURL(blob);
+      
+      // Create a download link and click it
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileInfo.name || 'downloaded-file';
+      document.body.appendChild(a);
+      a.click();
+      
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 100);
+
+      setShowDobModal(false);
     } catch (err) {
       console.error('Download error:', err);
-      setDobError("Failed to download file. Please try again.");
+      setDobError(`Download failed: ${err.message || 'Unknown error'}`);
     } finally {
       setVerifying(false);
     }

@@ -128,3 +128,27 @@ fn get_hash_metadata(hash: String) -> Option<HashInfo> {
 fn greet(name: String) -> String {
     format!("Hello, {}!", name)
 }
+
+#[query]
+fn get_file_chunk(hash: String, offset: u32, chunk_size: u32) -> Vec<u8> {
+    HASH_MAP.with(|map| {
+        let map = map.borrow();
+        match map.get(&hash) {
+            Some(info) => {
+                if let Some(content) = &info.content {
+                    let start = offset as usize;
+                    let end = std::cmp::min(start + (chunk_size as usize), content.len());
+                    
+                    if start >= content.len() {
+                        return vec![];
+                    }
+                    
+                    ic_cdk::println!("Sending chunk: offset={}, size={}", start, end - start);
+                    return content[start..end].to_vec();
+                }
+                vec![]
+            }
+            None => vec![]
+        }
+    })
+}
