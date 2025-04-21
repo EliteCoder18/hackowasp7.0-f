@@ -267,6 +267,43 @@ function FilesList() {
     }
   };
 
+  // Add this function near your other utility functions in the component
+  const copyToClipboard = (text) => {
+    // Try modern clipboard API first
+    navigator.clipboard.writeText(text)
+      .then(() => {
+        // Success! We'll handle UI feedback separately
+      })
+      .catch(err => {
+        console.error('Clipboard API failed, trying fallback:', err);
+        
+        // Fallback method
+        try {
+          const textArea = document.createElement('textarea');
+          textArea.value = text;
+          
+          // Make the textarea invisible
+          textArea.style.position = 'fixed';
+          textArea.style.opacity = 0;
+          textArea.style.left = '-999999px';
+          textArea.style.top = '-999999px';
+          
+          document.body.appendChild(textArea);
+          textArea.focus();
+          textArea.select();
+          
+          const successful = document.execCommand('copy');
+          document.body.removeChild(textArea);
+          
+          if (!successful) {
+            console.error('execCommand copy failed');
+          }
+        } catch (err) {
+          console.error('Fallback copy method failed:', err);
+        }
+      });
+  };
+
   return (
     <div className="w-full max-w-7xl mx-auto">
       {/* Header */}
@@ -445,7 +482,7 @@ function FilesList() {
                             <span className="bg-gray-800 p-1 rounded-md">{file.hash.substring(0, 10)}...</span>
                             <button
                               onClick={() => {
-                                navigator.clipboard.writeText(file.hash);
+                                copyToClipboard(file.hash);
                                 setCopiedHashes(prev => ({
                                   ...prev,
                                   [file.hash]: true
@@ -518,7 +555,7 @@ function FilesList() {
                         </span>
                         <button
                           onClick={() => {
-                            navigator.clipboard.writeText(file.hash);
+                            copyToClipboard(file.hash);
                             setCopiedHashes(prev => ({
                               ...prev,
                               [file.hash]: true

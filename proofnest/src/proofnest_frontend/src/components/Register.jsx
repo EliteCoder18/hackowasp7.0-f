@@ -3,12 +3,12 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { registerProof } from '../services/api';
 import { MAX_FILE_SIZE } from '../config';
-import { FaFileAlt, FaSync, FaCopy, FaSignOutAlt } from 'react-icons/fa';
+import { FaFileAlt, FaSync, FaCopy, FaSignOutAlt, FaCloudUploadAlt, FaBars, FaTimes, FaLock, FaShieldAlt, FaRegFileAlt, FaUser, FaMoneyBillWave, FaRegLightbulb } from 'react-icons/fa';
 import { proofnest_backend } from '../../../declarations/proofnest_backend';
 import { createActor } from '../../../declarations/proofnest_backend';
 
 function Register() {
-  // Existing state
+  // Keep all existing state and functions
   const { principal, identity, logout } = useAuth();
   const [file, setFile] = useState(null);
   const [message, setMessage] = useState('');
@@ -23,50 +23,35 @@ function Register() {
   const [contactDetails, setContactDetails] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
-  
-  // New state for files sidebar
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isRotating, setIsRotating] = useState(false);
-
-  // Add this new state for responsive sidebar
   const [showSidebar, setShowSidebar] = useState(true);
   
-  // Add useEffect to handle responsive behavior
+  // Keep all useEffects and handlers
   useEffect(() => {
     const handleResize = () => {
       setShowSidebar(window.innerWidth > 768);
     };
-    
-    // Set initial state
     handleResize();
-    
-    // Add event listener
     window.addEventListener('resize', handleResize);
-    
-    // Cleanup
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Fetch files on component mount
   useEffect(() => {
     fetchFiles();
   }, []);
 
-  // Fetch files from the canister
+  // All your existing functions remain the same
   const fetchFiles = async () => {
     setLoading(true);
     try {
       const actor = identity ? createActor(process.env.CANISTER_ID_PROOFNEST_BACKEND, {
-        agentOptions: {
-          identity,
-        },
+        agentOptions: { identity },
       }) : proofnest_backend;
 
       const result = await actor.get_all_files();
-      console.log("Files fetched:", result); // Debug log
       
-      // Transform the result into an array of files with properties
       const filesArray = result.map(([hash, info]) => ({
         hash,
         name: info.name,
@@ -76,9 +61,6 @@ function Register() {
         ownerName: info.owner_name,
         user: info.user.toString()
       }));
-      
-      console.log("Parsed files:", filesArray); // Debug log
-      console.log("Current principal:", identity?.getPrincipal().toString()); // Debug log
       
       setFiles(filesArray);
     } catch (err) {
@@ -94,10 +76,8 @@ function Register() {
     setTimeout(() => setIsRotating(false), 1000);
   };
 
-  // Format date for display
   const formatDate = (timestamp) => {
     if (!timestamp) return 'Unknown';
-    
     const date = new Date(timestamp);
     return date.toLocaleDateString(undefined, {
       year: 'numeric',
@@ -106,7 +86,6 @@ function Register() {
     });
   };
 
-  // Existing functions
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     processFile(selectedFile);
@@ -114,11 +93,10 @@ function Register() {
 
   const processFile = (selectedFile) => {
     if (selectedFile) {
-      // Check file size (2MB limit)
       if (selectedFile.size > MAX_FILE_SIZE) {
         setMessage('File size exceeds the 2MB limit. Please choose a smaller file.');
         setFile(null);
-        if (fileInputRef.current) fileInputRef.current.value = null; // Reset the file input
+        if (fileInputRef.current) fileInputRef.current.value = null;
         return;
       }
       setFile(selectedFile);
@@ -177,28 +155,22 @@ function Register() {
       setIsUploading(true);
       setMessage('Registering on blockchain...');
       
-      // Calculate file hash
       const fileHash = await calculateSHA256(file);
       
-      // Log file size before upload
-      console.log("File size before upload:", file.size);
-      
-      // Call registerProof with ALL required parameters
       await registerProof(
-        fileHash,       // hash
-        fileName,       // fileName
-        description,    // description
-        royaltyFee,     // royaltyFee
-        contactDetails, // contactInfo
-        ownerName,      // ownerName
-        ownerDob,       // ownerDob
-        file            // <-- pass the file object here!
+        fileHash,
+        fileName,
+        description,
+        royaltyFee,
+        contactDetails,
+        ownerName,
+        ownerDob,
+        file
       );
       
       setHash(fileHash);
       setMessage(`File registered successfully!`);
       
-      // Refresh files list after successful registration
       fetchFiles();
     } catch (error) {
       console.error('Registration error:', error);
@@ -208,13 +180,7 @@ function Register() {
     }
   };
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(hash);
-    setMessage('Hash copied to clipboard');
-  };
-
   const copyHash = (hash, name) => {
-    // Try modern clipboard API first
     navigator.clipboard.writeText(hash)
       .then(() => {
         showCopyFeedback(name);
@@ -222,12 +188,10 @@ function Register() {
       .catch(err => {
         console.error('Clipboard API failed, trying fallback:', err);
         
-        // Fallback method
         try {
           const textArea = document.createElement('textarea');
           textArea.value = hash;
           
-          // Make the textarea invisible
           textArea.style.position = 'fixed';
           textArea.style.opacity = 0;
           textArea.style.left = '-999999px';
@@ -252,17 +216,14 @@ function Register() {
       });
   };
 
-  // Helper function for showing feedback
   const showCopyFeedback = (name) => {
     setMessage(`Hash for ${name} copied to clipboard`);
     
-    // Create visual feedback
     const feedback = document.createElement('div');
     feedback.textContent = 'Copied!';
     feedback.className = 'fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded-md shadow-lg z-50';
     document.body.appendChild(feedback);
     
-    // Remove after delay
     setTimeout(() => {
       if (document.body.contains(feedback)) {
         document.body.removeChild(feedback);
@@ -270,49 +231,100 @@ function Register() {
     }, 2000);
   };
 
-  // Filter files to only show those from the current user
   const userFiles = files.filter(file => 
     file.user === identity?.getPrincipal().toString()
   );
 
+  // Get file icon based on content type
+  const getFileIcon = (contentType) => {
+    if (contentType?.includes('image')) {
+      return (
+        <div className="w-10 h-10 bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-lg flex items-center justify-center mr-3 border border-purple-500/30">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </div>
+      );
+    } else if (contentType?.includes('pdf')) {
+      return (
+        <div className="w-10 h-10 bg-gradient-to-br from-red-500/20 to-red-600/20 rounded-lg flex items-center justify-center mr-3 border border-red-500/30">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+          </svg>
+        </div>
+      );
+    } else if (contentType?.includes('video')) {
+      return (
+        <div className="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-lg flex items-center justify-center mr-3 border border-blue-500/30">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+        </div>
+      );
+    }
+    return (
+      <div className="w-10 h-10 bg-gradient-to-br from-gray-600/20 to-gray-700/20 rounded-lg flex items-center justify-center mr-3 border border-gray-500/30">
+        <FaFileAlt className="h-5 w-5 text-gray-400" />
+      </div>
+    );
+  };
+
   return (
-    <div className="min-h-screen bg-black flex flex-col md:flex-row">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-black to-gray-900 flex flex-col md:flex-row relative">
+      {/* Decorative elements */}
+      <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/10 rounded-full filter blur-3xl opacity-30 pointer-events-none"></div>
+      <div className="absolute bottom-20 right-10 w-80 h-80 bg-purple-500/10 rounded-full filter blur-3xl opacity-30 pointer-events-none"></div>
+      
       {/* Mobile Sidebar Toggle */}
-      <div className="md:hidden p-4 bg-gray-900 text-white flex justify-between items-center border-b border-gray-800">
-        <h2 className="text-xl font-bold">ProofNest</h2>
+      <div className="md:hidden p-5 bg-gray-900/80 backdrop-blur-sm text-white flex justify-between items-center border-b border-gray-700/50 sticky top-0 z-20">
+        <h2 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-indigo-500 text-transparent bg-clip-text">ProofNest</h2>
         <button 
           onClick={() => setShowSidebar(!showSidebar)}
-          className="p-2 bg-gray-800 rounded-md"
+          className="p-2 bg-gray-800/80 rounded-md transition-all hover:bg-gray-700/80"
         >
           {showSidebar ? (
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <FaTimes className="h-5 w-5 text-gray-300" />
           ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
+            <FaBars className="h-5 w-5 text-gray-300" />
           )}
         </button>
       </div>
       
       {/* Sidebar - hidden on mobile unless toggled */}
-      <div className={`${showSidebar ? 'block' : 'hidden'} md:block w-full md:w-80 bg-gray-900 text-white flex flex-col h-[calc(100vh-64px)] md:h-screen border-r border-gray-800`}>
-        {/* Scrollable content area - flex-grow will push logout to bottom */}
-        <div className="flex-grow overflow-y-auto p-6">
+      <div className={`${showSidebar ? 'block' : 'hidden'} md:block w-full md:w-80 bg-gray-900/70 backdrop-blur-md text-white flex flex-col h-[calc(100vh-64px)] md:h-screen border-r border-gray-800/50 relative z-10`}>
+        {/* Sidebar decorative header */}
+        <div className="hidden md:block p-6 border-b border-gray-800/50 bg-gradient-to-r from-gray-900 to-gray-800">
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-indigo-500 text-transparent bg-clip-text">ProofNest</h2>
+          <p className="text-sm text-gray-400 mt-1">Blockchain Content Verification</p>
+        </div>
+        
+        {/* Scrollable content area */}
+        <div className="flex-grow overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900">
           {/* User Section */}
-          <div className="mb-6 mt-1">
-            <h2 className="text-xl font-bold mb-2">Hi User</h2>
-            <p className="text-sm text-gray-400 break-all">{principal || 'Not logged in'}</p>
+          <div className="mb-8 mt-1">
+            <div className="flex items-center mb-3">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center mr-3 shadow-lg shadow-blue-500/20">
+                <FaUser className="text-white" />
+              </div>
+              <h2 className="text-xl font-bold text-white">Welcome</h2>
+            </div>
+            <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
+              <p className="text-sm text-gray-300 break-all font-mono">{principal || 'Not logged in'}</p>
+            </div>
           </div>
 
-          {/* Your Files Section - Add debugging logs */}
+          {/* Your Files Section */}
           <div>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-sm font-medium bg-gray-300 p-2 rounded-lg text-gray-800 uppercase">Your Files</h3>
+            <div className="flex justify-between items-center mb-5">
+              <div className="flex items-center">
+                <div className="bg-blue-500/20 w-8 h-8 flex items-center justify-center rounded-md mr-2">
+                  <FaRegFileAlt className="text-blue-400" />
+                </div>
+                <h3 className="text-md font-semibold text-white">Your Files</h3>
+              </div>
               <button
                 onClick={handleRefreshClick}
-                className={`p-2 text-gray-400 hover:text-white transition-colors ${
+                className={`p-2 text-gray-400 hover:text-blue-400 transition-all hover:bg-gray-800/70 rounded-full ${
                   isRotating ? 'animate-spin' : ''
                 }`}
                 disabled={isRotating}
@@ -322,62 +334,40 @@ function Register() {
               </button>
             </div>
 
-            {/* Debug info - remove in production */}
-            <div className="hidden">
-              <p>Files count: {files.length}</p>
-              <p>User Files count: {userFiles.length}</p>
-              <p>Principal: {identity?.getPrincipal?.().toString() || 'No Principal'}</p>
-            </div>
-
             {loading ? (
               <div className="text-center py-10">
                 <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
-                <p className="mt-2 text-gray-400 text-sm">Loading...</p>
+                <p className="mt-2 text-gray-400 text-sm">Loading your files...</p>
               </div>
             ) : !identity ? (
-              <div className="text-center py-8 bg-gray-800 bg-opacity-30 rounded-lg">
-                <FaFileAlt className="h-10 w-10 text-gray-500 mx-auto mb-2" />
-                <p className="text-gray-400 text-sm">Please log in to view your files</p>
+              <div className="text-center py-8 bg-gray-800/30 rounded-xl border border-gray-700/50">
+                <div className="bg-gray-700/50 w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-3">
+                  <FaLock className="h-6 w-6 text-gray-400" />
+                </div>
+                <p className="text-gray-300 font-medium">Authentication Required</p>
+                <p className="text-gray-400 text-sm mt-1">Log in to view your files</p>
               </div>
             ) : userFiles.length === 0 ? (
-              <div className="text-center py-8 bg-gray-800 bg-opacity-30 rounded-lg">
-                <FaFileAlt className="h-10 w-10 text-gray-500 mx-auto mb-2" />
-                <p className="text-gray-400 text-sm">No files registered yet</p>
-                <p className="text-gray-500 text-xs mt-1">Files you register will appear here</p>
+              <div className="text-center py-8 bg-gray-800/30 rounded-xl border border-gray-700/50">
+                <div className="bg-gray-700/50 w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-3">
+                  <FaRegFileAlt className="h-6 w-6 text-gray-400" />
+                </div>
+                <p className="text-gray-300 font-medium">No files yet</p>
+                <p className="text-gray-400 text-sm mt-1">Files you register will appear here</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {userFiles.map((file) => (
-                  <div key={file.hash} className="bg-gray-800 rounded-lg p-3 hover:bg-gray-700 transition cursor-pointer">
+                  <div 
+                    key={file.hash} 
+                    className="bg-gradient-to-r from-gray-800/80 to-gray-900/80 rounded-xl p-3 hover:from-gray-700/80 hover:to-gray-800/80 transition-all duration-300 cursor-pointer border border-gray-700/50 hover:border-gray-600/50 hover:shadow-lg hover:shadow-blue-900/10"
+                  >
                     <div className="flex items-center">
-                      {/* File icon - no changes needed */}
-                      {file.contentType?.includes('image') ? (
-                        <div className="w-10 h-10 bg-purple-500 bg-opacity-20 rounded-lg flex items-center justify-center mr-3">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                        </div>
-                      ) : file.contentType?.includes('pdf') ? (
-                        <div className="w-10 h-10 bg-red-500 bg-opacity-20 rounded-lg flex items-center justify-center mr-3">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                          </svg>
-                        </div>
-                      ) : file.contentType?.includes('video') ? (
-                        <div className="w-10 h-10 bg-blue-500 bg-opacity-20 rounded-lg flex items-center justify-center mr-3">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                          </svg>
-                        </div>
-                      ) : (
-                        <div className="w-10 h-10 bg-gray-600 bg-opacity-20 rounded-lg flex items-center justify-center mr-3">
-                          <FaFileAlt className="h-5 w-5 text-gray-400" />
-                        </div>
-                      )}
+                      {getFileIcon(file.contentType)}
                       
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate text-gray-200">{file.name}</p>
-                        <p className="text-xs text-gray-400 truncate">{formatDate(file.timestamp)}</p>
+                        <p className="text-sm font-medium truncate text-white">{file.name}</p>
+                        <p className="text-xs text-blue-300/80 truncate">{formatDate(file.timestamp)}</p>
                       </div>
                       
                       <button 
@@ -385,7 +375,7 @@ function Register() {
                           e.stopPropagation();
                           copyHash(file.hash, file.name);
                         }}
-                        className="ml-2 text-blue-400 hover:text-blue-300 p-1 hover:bg-gray-700 rounded-full"
+                        className="ml-2 text-gray-400 hover:text-blue-400 p-1.5 hover:bg-blue-900/20 rounded-full transition-all"
                         title="Copy hash"
                       >
                         <FaCopy className="h-4 w-4" />
@@ -398,11 +388,11 @@ function Register() {
           </div>
         </div>
         
-        {/* Logout Button - Fixed at bottom with shrink-0 to prevent it from being squeezed */}
-        <div className="p-6 border-t border-gray-800 shrink-0">
+        {/* Logout Button */}
+        <div className="p-5 border-t border-gray-800/50 shrink-0 bg-gradient-to-b from-transparent to-gray-900/50">
           <button
             onClick={logout}
-            className="w-full bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md transition duration-200 flex items-center justify-center"
+            className="w-full bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white py-2.5 px-4 rounded-lg transition duration-200 flex items-center justify-center font-medium shadow-lg shadow-red-900/20"
           >
             <FaSignOutAlt className="mr-2" /> Logout
           </button>
@@ -410,17 +400,23 @@ function Register() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-4 md:p-8 overflow-y-auto">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 text-white">Register File</h2>
+      <div className="flex-1 p-5 md:p-10 overflow-y-auto relative z-10">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-8">
+            <div className="inline-flex items-center justify-center bg-gradient-to-r from-blue-600/20 to-indigo-600/20 p-3 rounded-xl border border-blue-500/20 mb-4">
+              <FaShieldAlt className="text-blue-400 text-2xl" />
+            </div>
+            <h2 className="text-3xl font-bold mb-2 text-white">Register Content</h2>
+            <p className="text-gray-400">Secure your digital assets on the blockchain with tamper-proof verification</p>
+          </div>
           
-          {/* Original Register Form Content - Made responsive */}
+          {/* Register Form Content */}
           <div className="space-y-6 md:space-y-8">
             {/* File upload area with drag and drop */}
             <div 
-              className={`border-2 border-dashed rounded-xl p-4 md:p-8 text-center transition-all duration-200 
-                ${isDragging ? 'border-blue-400 bg-blue-50/10' : 'border-gray-600 hover:border-blue-300'} 
-                ${file ? 'bg-gray-800/50' : ''}`}
+              className={`border-2 border-dashed rounded-xl p-6 md:p-10 text-center transition-all duration-300 
+                ${isDragging ? 'border-blue-400 bg-blue-500/10 shadow-lg shadow-blue-500/10' : 'border-gray-600/50 hover:border-blue-500/70'} 
+                ${file ? 'bg-gray-800/40 backdrop-blur-sm' : ''}`}
               onDragEnter={handleDragEnter}
               onDragLeave={handleDragLeave}
               onDragOver={handleDragOver}
@@ -436,24 +432,25 @@ function Register() {
               
               {!file ? (
                 <div className="space-y-4 cursor-pointer">
-                  <div className="mx-auto w-12 h-12 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-gray-800 text-blue-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 md:h-8 md:w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
+                  <div className="mx-auto w-20 h-20 flex items-center justify-center rounded-full bg-gradient-to-br from-blue-500/20 to-indigo-600/30 text-blue-400 border border-blue-500/30 shadow-lg shadow-blue-500/10">
+                    <FaCloudUploadAlt className="h-8 w-8" />
                   </div>
-                  <div className="text-gray-300 font-medium text-base md:text-lg">Drag and drop your file here</div>
-                  <div className="text-gray-500 text-xs md:text-sm">or click to browse</div>
+                  <div>
+                    <div className="text-white font-medium text-lg">Drag and drop your file here</div>
+                    <div className="text-gray-400 text-sm mt-1">or click to browse your device</div>
+                  </div>
+                  <div className="text-xs text-gray-500 max-w-sm mx-auto">
+                    Supported file types: images, PDFs, videos, documents. Maximum size: 2MB
+                  </div>
                 </div>
               ) : (
-                <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 md:w-12 md:h-12 flex-shrink-0 rounded-full flex items-center justify-center bg-blue-500/20 text-blue-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-6 md:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
+                <div className="flex flex-col items-center md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-6">
+                  <div className="w-16 h-16 flex-shrink-0 rounded-full flex items-center justify-center bg-gradient-to-br from-blue-500/20 to-indigo-600/20 text-blue-400 border border-blue-500/30">
+                    <FaRegFileAlt className="h-6 w-6" />
                   </div>
-                  <div className="flex-1 truncate text-left">
-                    <div className="text-white font-medium truncate text-sm md:text-base">{file.name}</div>
-                    <div className="text-gray-500 text-xs md:text-sm">{(file.size / 1024).toFixed(2)} KB</div>
+                  <div className="flex-1 truncate text-center md:text-left">
+                    <div className="text-white font-semibold truncate text-lg">{file.name}</div>
+                    <div className="text-gray-400 text-sm">{(file.size / 1024).toFixed(2)} KB • Ready to register</div>
                   </div>
                   <button 
                     type="button" 
@@ -462,138 +459,174 @@ function Register() {
                       setFile(null);
                       if (fileInputRef.current) fileInputRef.current.value = null;
                     }}
-                    className="rounded-full p-1 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors"
+                    className="rounded-full p-2 hover:bg-gray-700/70 text-gray-400 hover:text-white transition-all"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    <FaTimes className="h-5 w-5" />
                   </button>
                 </div>
               )}
             </div>
 
-            {/* Metadata Input Section - Made responsive */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+            {/* Form Sections */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* File Details */}
-              <div className="bg-gray-800 p-4 md:p-5 rounded-lg border border-gray-700 shadow-md">
-                <h3 className="text-md md:text-lg font-medium text-blue-400 mb-3 md:mb-4">File Details</h3>
-                <div className="space-y-3 md:space-y-4">
+              <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 rounded-xl border border-gray-700/50 shadow-xl overflow-hidden backdrop-blur-sm">
+                <div className="bg-gradient-to-r from-blue-600/20 to-blue-600/5 px-5 py-4 border-b border-gray-700/50">
+                  <div className="flex items-center">
+                    <div className="bg-blue-600/20 p-2 rounded-lg mr-3">
+                      <FaRegFileAlt className="text-blue-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-white">File Details</h3>
+                  </div>
+                </div>
+                
+                <div className="p-5 space-y-4">
                   <div>
-                    <label className="block text-gray-300 mb-1 md:mb-2 font-medium text-sm md:text-base">File Name</label>
+                    <label className="block text-gray-300 mb-2 font-medium">File Name</label>
                     <input
                       type="text"
                       value={fileName}
                       onChange={(e) => setFileName(e.target.value)}
-                      placeholder="Enter a name"
-                      className="w-full bg-gray-900 text-gray-300 text-sm md:text-base rounded-lg p-2 md:p-3 border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all duration-200"
+                      placeholder="Enter a descriptive name"
+                      className="w-full bg-gray-900/70 text-gray-200 rounded-lg p-3 border border-gray-700/70 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all shadow-inner outline-none"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-gray-300 mb-1 md:mb-2 font-medium text-sm md:text-base">Description</label>
+                    <label className="block text-gray-300 mb-2 font-medium">Description</label>
                     <textarea
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Enter a description for this file"
-                      className="w-full bg-gray-900 text-gray-300 text-sm md:text-base rounded-lg p-2 md:p-3 border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all duration-200 min-h-[80px] md:min-h-[100px]"
+                      placeholder="Describe the content of this file..."
+                      className="w-full bg-gray-900/70 text-gray-200 rounded-lg p-3 border border-gray-700/70 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all min-h-[100px] shadow-inner outline-none resize-none"
                     ></textarea>
+                    <p className="mt-2 text-xs text-gray-500">This description will help others understand what this file contains</p>
                   </div>
                 </div>
               </div>
               
               {/* Owner Details */}
-              <div className="bg-gray-800 p-4 md:p-5 rounded-lg border border-gray-700 shadow-md">
-                <h3 className="text-md md:text-lg font-medium text-blue-400 mb-3 md:mb-4">Owner Details</h3>
-                <div className="space-y-3 md:space-y-4">
+              <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 rounded-xl border border-gray-700/50 shadow-xl overflow-hidden backdrop-blur-sm">
+                <div className="bg-gradient-to-r from-indigo-600/20 to-indigo-600/5 px-5 py-4 border-b border-gray-700/50">
+                  <div className="flex items-center">
+                    <div className="bg-indigo-600/20 p-2 rounded-lg mr-3">
+                      <FaUser className="text-indigo-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-white">Owner Details</h3>
+                  </div>
+                </div>
+                
+                <div className="p-5 space-y-4">
                   <div>
-                    <label className="block text-gray-300 mb-1 md:mb-2 font-medium text-sm md:text-base">Owner Name</label>
+                    <label className="block text-gray-300 mb-2 font-medium">Owner Name</label>
                     <input
                       type="text"
                       value={ownerName}
                       onChange={(e) => setOwnerName(e.target.value)}
-                      placeholder="Enter owner's name"
-                      className="w-full bg-gray-900 text-gray-300 text-sm md:text-base rounded-lg p-2 md:p-3 border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all duration-200"
+                      placeholder="Enter the owner's name"
+                      className="w-full bg-gray-900/70 text-gray-200 rounded-lg p-3 border border-gray-700/70 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all shadow-inner outline-none"
                       required
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-gray-300 mb-1 md:mb-2 font-medium text-sm md:text-base">Owner Date of Birth (passkey)</label>
+                    <label className="block text-gray-300 mb-2 font-medium">Owner Date of Birth</label>
                     <input
                       type="date"
                       value={ownerDob}
                       onChange={(e) => setOwnerDob(e.target.value)}
-                      className="w-full bg-gray-900 text-gray-300 text-sm md:text-base rounded-lg p-2 md:p-3 border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all duration-200"
+                      className="w-full bg-gray-900/70 text-gray-200 rounded-lg p-3 border border-gray-700/70 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all shadow-inner outline-none"
                       required
                     />
-                    <p className="text-xs text-gray-500 mt-1">
-                      This will be used as a passkey for others to download this file
-                    </p>
+                    <div className="mt-2 bg-blue-900/20 border border-blue-800/30 rounded-lg p-3">
+                      <p className="text-xs flex items-start text-blue-300">
+                        <FaRegLightbulb className="h-3 w-3 mr-2 mt-0.5 flex-shrink-0" />
+                        This will be used as a secure passkey for others to verify and download this file
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Royalty Section */}
-            <div className="bg-gray-800 p-5 rounded-lg border border-gray-700 shadow-md">
-              <div className="flex items-center mb-4">
-                <div className="form-control">
-                  <label className="flex cursor-pointer items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="royaltyOption"
-                      checked={hasRoyalty}
-                      onChange={(e) => setHasRoyalty(e.target.checked)}
-                      className="checkbox border-gray-600 checked:border-blue-500"
-                    />
-                    <span className="text-gray-300 font-medium ml-2">Enable royalty service for this file</span>
-                  </label>
+            <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 rounded-xl border border-gray-700/50 shadow-xl overflow-hidden backdrop-blur-sm">
+              <div className="bg-gradient-to-r from-purple-600/20 to-purple-600/5 px-5 py-4 border-b border-gray-700/50">
+                <div className="flex items-center">
+                  <div className="bg-purple-600/20 p-2 rounded-lg mr-3">
+                    <FaMoneyBillWave className="text-purple-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white">Royalty Options</h3>
                 </div>
               </div>
               
-              {hasRoyalty && (
-                <div className="space-y-4 p-4 bg-gray-900 rounded-lg border border-gray-700 mt-4 animate-fadeIn">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-gray-300 mb-2 font-medium">Royalty Fee (USD)</label>
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={royaltyFee}
-                        onChange={(e) => setRoyaltyFee(e.target.value)}
-                        className="w-full bg-gray-900 text-gray-300 rounded-lg p-3 border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all duration-200"
-                        required={hasRoyalty}
-                      />
+              <div className="p-5">
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    id="royaltyOption"
+                    checked={hasRoyalty}
+                    onChange={(e) => setHasRoyalty(e.target.checked)}
+                    className="form-checkbox h-5 w-5 text-blue-600 rounded border-gray-600 focus:ring-blue-500 focus:ring-offset-gray-900 transition duration-150"
+                  />
+                  <span className="text-white font-medium">Enable royalty service for this file</span>
+                </label>
+                
+                <p className="mt-2 text-sm text-gray-400">
+                  Enabling royalties allows you to monetize your content when others use it
+                </p>
+                
+                {hasRoyalty && (
+                  <div className="mt-5 space-y-4 bg-gradient-to-r from-purple-900/20 to-gray-900 rounded-xl border border-purple-800/30 p-5 animate-fadeIn">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div>
+                        <label className="block text-gray-300 mb-2 font-medium">Royalty Fee (USD)</label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">$</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={royaltyFee}
+                            onChange={(e) => setRoyaltyFee(e.target.value)}
+                            className="w-full bg-gray-900/70 text-gray-200 rounded-lg p-3 pl-8 border border-gray-700/70 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/30 transition-all shadow-inner outline-none"
+                            required={hasRoyalty}
+                          />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-gray-300 mb-2 font-medium">Contact Details</label>
+                        <input
+                          type="text"
+                          value={contactDetails}
+                          onChange={(e) => setContactDetails(e.target.value)}
+                          placeholder="Email, phone, or website"
+                          className="w-full bg-gray-900/70 text-gray-200 rounded-lg p-3 border border-gray-700/70 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/30 transition-all shadow-inner outline-none"
+                          required={hasRoyalty}
+                        />
+                      </div>
                     </div>
                     
-                    <div>
-                      <label className="block text-gray-300 mb-2 font-medium">Contact Details</label>
-                      <input
-                        type="text"
-                        value={contactDetails}
-                        onChange={(e) => setContactDetails(e.target.value)}
-                        placeholder="Email, phone, or website"
-                        className="w-full bg-gray-900 text-gray-300 rounded-lg p-3 border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all duration-200"
-                        required={hasRoyalty}
-                      />
+                    <div className="bg-purple-900/30 border border-purple-800/30 rounded-lg p-4 mt-4">
+                      <p className="text-sm flex items-start text-purple-300">
+                        <FaRegLightbulb className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
+                        Your contact details will be shown to users who would like to license your content. You'll handle payment collection directly with interested parties.
+                      </p>
                     </div>
                   </div>
-                  <p className="text-xs text-gray-500">
-                    The contact information will be visible to users who wish to contact you about using this asset
-                  </p>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
             {/* Action Button */}
             <button
               onClick={handleRegister}
               disabled={isUploading || !file}
-              className={`w-full bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-4 rounded-lg font-medium text-lg shadow-lg transform transition-all duration-200
+              className={`w-full bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-4 rounded-xl font-medium text-lg shadow-xl transform transition-all duration-300
                 ${(isUploading || !file) 
                   ? 'opacity-50 cursor-not-allowed' 
-                  : 'hover:from-blue-700 hover:to-indigo-800 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0'}`}
+                  : 'hover:from-blue-700 hover:to-indigo-800 hover:shadow-2xl hover:shadow-blue-700/20 hover:-translate-y-0.5 active:translate-y-0'}`}
             >
               {isUploading ? (
                 <div className="flex items-center justify-center">
@@ -601,43 +634,64 @@ function Register() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Registering on Blockchain...
+                  <span>Registering on Blockchain...</span>
                 </div>
               ) : (
-                <>Register on Blockchain</>
+                <div className="flex items-center justify-center">
+                  <FaShieldAlt className="mr-2" />
+                  <span>Register on Blockchain</span>
+                </div>
               )}
             </button>
 
             {/* Messages and Results */}
             {message && (
-              <div className="p-5 bg-gray-800 rounded-lg border border-gray-700 shadow-md">
+              <div className="p-5 bg-gradient-to-r from-gray-800/80 to-gray-900/80 rounded-xl border border-gray-700/50 shadow-xl backdrop-blur-sm animate-fadeIn">
                 <div className="text-gray-300">{message}</div>
               </div>
             )}
             
             {hash && (
-              <div className="p-4 md:p-5 bg-gray-800 rounded-lg border border-gray-700 shadow-md">
-                <h3 className="text-md md:text-lg font-medium text-blue-400 mb-3 md:mb-4">Registration Successful</h3>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-gray-900 p-3 rounded-lg">
-                  <div className="font-mono text-gray-300 break-all pr-2 text-sm md:text-base mb-2 sm:mb-0">
-                    {hash}
+              <div className="bg-gradient-to-r from-green-900/20 to-blue-900/20 rounded-xl border border-green-700/30 shadow-xl overflow-hidden backdrop-blur-sm animate-fadeIn">
+                <div className="bg-gradient-to-r from-green-600/20 to-green-600/5 px-5 py-4 border-b border-green-700/30">
+                  <div className="flex items-center">
+                    <div className="bg-green-600/30 p-2 rounded-full mr-3">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-300" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-bold text-green-400">Registration Successful</h3>
                   </div>
-                  <button
-                    onClick={() => copyHash(hash, fileName)}
-                    className="ml-0 sm:ml-2 px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors flex items-center text-sm"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
-                    </svg>
-                    Copy
-                  </button>
+                </div>
+                
+                <div className="p-5 space-y-3">
+                  <p className="text-sm text-gray-300 mb-2">
+                    Your file has been successfully registered on the blockchain. The unique content hash is:
+                  </p>
+                  
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-gray-900/80 p-4 rounded-lg border border-gray-700/50">
+                    <div className="font-mono text-gray-100 break-all pr-2 text-sm mb-3 sm:mb-0">
+                      {hash}
+                    </div>
+                    <button
+                      onClick={() => copyHash(hash, fileName)}
+                      className="ml-0 sm:ml-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all flex items-center text-sm whitespace-nowrap shadow-lg shadow-blue-700/20"
+                    >
+                      <FaCopy className="h-4 w-4 mr-2" />
+                      Copy Hash
+                    </button>
+                  </div>
+                  
+                  <p className="text-xs text-gray-400 mt-3">
+                    Store this hash safely. It serves as proof of your content registration and can be used to verify ownership.
+                  </p>
                 </div>
               </div>
             )}
           </div>
           
           {/* Footer */}
-          <div className="text-center text-gray-600 text-xs md:text-sm mt-6 md:mt-8">
+          <div className="text-center text-gray-500 text-sm mt-10">
             © {new Date().getFullYear()} ProofNest - Blockchain Content Verification
           </div>
         </div>
