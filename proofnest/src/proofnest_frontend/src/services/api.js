@@ -87,8 +87,15 @@ export const registerProof = async (hash, fileName, royaltyFee, contactInfo, own
 
 export const verifyProof = async (hash) => {
   try {
+    console.log("Calling backend verify_hash with:", hash);
     const actor = await getBackendActor();
-    const result = await actor.verify_hash(hash);
+    let result = await actor.verify_hash(hash);
+    console.log("Backend raw verify_hash result:", result);
+
+    // DFINITY agent returns [value] or [] for opt types
+    if (Array.isArray(result)) {
+      result = result[0]; // undefined if not found
+    }
 
     if (result) {
       return {

@@ -89,8 +89,10 @@ function Verify() {
     if (!hash.trim()) return;
     setIsVerifying(true);
     setResult(null);
+    console.log("Verifying hash:", hash.trim());
     try {
       const res = await verifyProof(hash.trim());
+      console.log("VerifyProof result:", res);
       setResult({
         ...res,
         hash,
@@ -100,6 +102,7 @@ function Verify() {
           : 'This file is not registered on the blockchain.'
       });
     } catch (error) {
+      console.error("Verify hash error:", error);
       setResult({
         verified: false,
         message: error.message || 'Error verifying hash'
@@ -114,9 +117,12 @@ function Verify() {
     if (!file) return;
     setIsVerifying(true);
     setResult(null);
+    console.log("Verifying file:", file.name);
     try {
       const fileHash = await calculateSHA256(file);
+      console.log("Calculated file hash:", fileHash);
       const res = await verifyProof(fileHash);
+      console.log("VerifyProof result:", res);
       setResult({
         ...res,
         hash: fileHash,
@@ -126,6 +132,7 @@ function Verify() {
           : 'This file is not registered on the blockchain.'
       });
     } catch (error) {
+      console.error("Verify file error:", error);
       setResult({
         verified: false,
         message: error.message || 'Error verifying file'
