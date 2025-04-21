@@ -1,5 +1,5 @@
 import { Actor, HttpAgent } from '@dfinity/agent';
-import { idlFactory } from '../declarations/proof_backend/proof_backend.did.js';
+import { idlFactory } from '../declarations/proofnest_backend/proofnest_backend.did.js';
 
 async function testCanister() {
   try {

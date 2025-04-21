@@ -1,8 +1,11 @@
 import { Actor, HttpAgent } from '@dfinity/agent';
-import { idlFactory } from '../../../declarations/proof_backend/proof_backend.did.js';
+import { idlFactory } from '../../../declarations/proofnest_backend/proofnest_backend.did.js';
 
-// Your canister ID
-const CANISTER_ID = 'uxrrr-q7777-77774-qaaaq-cai';
+// Use environment variable or fallback
+const CANISTER_ID =
+  process.env.DFX_NETWORK === 'ic'
+    ? process.env.CANISTER_ID_PROOFNEST_BACKEND
+    : process.env.CANISTER_ID_PROOFNEST_BACKEND || 'local-canister-id-here'; // fallback for local
 
 // Detect if running on mainnet (production)
 const isProduction = process.env.NODE_ENV === 'production';

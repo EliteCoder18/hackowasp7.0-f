@@ -4,27 +4,28 @@ use ic_cdk::{query, update};
 use std::cell::RefCell;
 use std::collections::HashMap;
 
-// Updated HashInfo to include file content and name
+// HashInfo struct to store file metadata
 #[derive(CandidType, Deserialize, Clone)]
-struct HashInfo {
-    user: Principal,
-    timestamp: u64,
-    content: Option<Vec<u8>>,
-    content_type: String,
-    name: String, // Add this field
-    description: String,
-    owner_name: String,
-    owner_dob: String,
-    royalty_fee: String,
-    has_royalty: bool,
-    contact_details: String,
+pub struct HashInfo {
+    pub user: Principal,
+    pub timestamp: u64,
+    pub content: Option<Vec<u8>>, // Optional to avoid returning content in listings
+    pub content_type: String,
+    pub name: String,
+    pub description: String,
+    pub owner_name: String,
+    pub owner_dob: String,
+    pub royalty_fee: String,
+    pub has_royalty: bool,
+    pub contact_details: String,
 }
 
+// Thread-local storage for our hash map
 thread_local! {
     static HASH_MAP: RefCell<HashMap<String, HashInfo>> = RefCell::new(HashMap::new());
 }
 
-// Updated register_hash function to handle file content and name
+// Register a new hash with file content and metadata
 #[update]
 fn register_hash(
     hash: String, 
@@ -53,7 +54,7 @@ fn register_hash(
             ic_cdk::trap(&format!("Hash already registered: hash: {}", hash));
         }
         
-        // Store the hash info with all the new fields
+        // Store the hash info with all metadata
         map.insert(
             hash.clone(), 
             HashInfo { 
@@ -73,7 +74,7 @@ fn register_hash(
     });
 }
 
-// Updated query function to return content when requested
+// Retrieve information for a specific hash
 #[query]
 fn get_hash_info(hash: String) -> Option<HashInfo> {
     HASH_MAP.with(|map| {
@@ -82,29 +83,7 @@ fn get_hash_info(hash: String) -> Option<HashInfo> {
     })
 }
 
-// Add a function to get hash info without the file content
-// This is useful for verification without loading large files
-#[query]
-fn get_hash_metadata(hash: String) -> Option<HashInfo> {
-    HASH_MAP.with(|map| {
-        let map = map.borrow();
-        map.get(&hash).map(|info| HashInfo {
-            user: info.user,
-            timestamp: info.timestamp,
-            content: None, // Don't return the content
-            content_type: info.content_type.clone(),
-            name: info.name.clone(), // Return the name
-            description: info.description.clone(),
-            owner_name: info.owner_name.clone(),
-            owner_dob: info.owner_dob.clone(),
-            royalty_fee: info.royalty_fee.clone(),
-            has_royalty: info.has_royalty,
-            contact_details: info.contact_details.clone(),
-        })
-    })
-}
-
-// Add a function to get all files without their content
+// List all registered files (without content to save bandwidth)
 #[query]
 fn get_all_files() -> Vec<(String, HashInfo)> {
     HASH_MAP.with(|map| {
@@ -131,4 +110,19 @@ fn get_all_files() -> Vec<(String, HashInfo)> {
     })
 }
 
-ic_cdk::export_candid!();
+// Verify if a hash exists and return its info
+#[query]
+fn verify_hash(hash: String) -> Option<HashInfo> {
+    get_hash_info(hash)
+}
+
+// Simple metadata retrieval method
+#[query]
+fn get_hash_metadata(hash: String) -> Option<HashInfo> {
+    get_hash_info(hash)
+}
+
+#[ic_cdk::query]
+fn greet(name: String) -> String {
+    format!("Hello, {}!", name)
+}

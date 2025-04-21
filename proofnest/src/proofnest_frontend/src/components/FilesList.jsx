@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { proof_backend } from '../../../declarations/proof_backend';
-import { createActor } from '../../../declarations/proof_backend';
+import { proofnest_backend } from '../../../declarations/proofnest_backend';
+import { createActor } from '../../../declarations/proofnest_backend';
 import { useAuth } from '../context/AuthContext';
 import { 
   FaFileAlt, FaDownload, FaCopy, FaUser, FaInfoCircle, 
@@ -42,11 +42,11 @@ function FilesList() {
     setLoading(true);
     setError(null);
     try {
-      const actor = identity ? createActor(process.env.CANISTER_ID_PROOF_BACKEND, {
+      const actor = identity ? createActor(process.env.CANISTER_ID_PROOFNEST_BACKEND, {
         agentOptions: {
           identity,
         },
-      }) : proof_backend;
+      }) : proofnest_backend;
 
       const result = await actor.get_all_files();
       
@@ -90,11 +90,11 @@ function FilesList() {
     setDobError('');
     
     try {
-      const actor = identity ? createActor(process.env.CANISTER_ID_PROOF_BACKEND, {
+      const actor = identity ? createActor(process.env.CANISTER_ID_PROOFNEST_BACKEND, {
         agentOptions: {
           identity,
         },
-      }) : proof_backend;
+      }) : proofnest_backend;
 
       // Get file info with content
       const fileInfo = await actor.get_hash_info(selectedFile.hash);
