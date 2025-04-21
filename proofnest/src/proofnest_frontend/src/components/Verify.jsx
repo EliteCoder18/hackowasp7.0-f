@@ -184,7 +184,7 @@ function Verify() {
     return (
       <div className="mt-4 p-4 bg-red-100 border-l-4 border-red-500 rounded">
         <div className="font-bold text-red-700">✗ Not Verified</div>
-        <div className="mt-2">
+        <div className="mt-2 text-red-600">
           <div>{result.message || 'Content not found on the blockchain'}</div>
         </div>
       </div>
