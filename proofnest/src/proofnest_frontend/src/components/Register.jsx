@@ -93,6 +93,7 @@ function Register() {
       await registerProof(
         fileHash,       // hash
         fileName,       // fileName
+        description,    // description
         royaltyFee,     // royaltyFee
         contactDetails, // contactInfo
         ownerName,      // ownerName

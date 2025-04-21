@@ -59,12 +59,11 @@ export const getBackendActor = async () => {
   }
 };
 
-export const registerProof = async (hash, fileName, royaltyFee, contactInfo, ownerName, ownerDob) => {
+export const registerProof = async (hash, fileName, description, royaltyFee, contactInfo, ownerName, ownerDob) => {
   try {
     const actor = await getBackendActor();
     const content = [];
     const contentType = "application/octet-stream";
-    const description = "Registered via frontend";
     const hasRoyalty = Number(royaltyFee) > 0;
 
     return await actor.register_hash(
@@ -72,7 +71,7 @@ export const registerProof = async (hash, fileName, royaltyFee, contactInfo, own
       content,
       contentType,
       fileName,
-      description,
+      description, // <-- use the real description here!
       ownerName,
       ownerDob,
       royaltyFee.toString(),
