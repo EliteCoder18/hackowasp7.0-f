@@ -47,6 +47,8 @@ fn register_hash(
         ic_cdk::trap("File too large - maximum size is 2MB");
     }
     
+    ic_cdk::println!("Received content length: {}", content.len());
+    
     HASH_MAP.with(|map| {
         let mut map = map.borrow_mut();
         // Ensure the hash is unique

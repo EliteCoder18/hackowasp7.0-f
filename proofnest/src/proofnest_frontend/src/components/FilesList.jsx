@@ -118,8 +118,15 @@ function FilesList() {
         return;
       }
 
+      if (!fileInfo.content || fileInfo.content.length === 0) {
+        setDobError("File content not available.");
+        return;
+      }
+
       // If content exists, create a download
       if (fileInfo.content && fileInfo.content.length > 0) {
+        console.log("Downloading file with content length:", fileInfo.content?.length);
+        console.log("Content length received from backend:", fileInfo.content?.length);
         const uint8Array = new Uint8Array(fileInfo.content);
         const blob = new Blob([uint8Array], { type: fileInfo.content_type });
         const url = URL.createObjectURL(blob);

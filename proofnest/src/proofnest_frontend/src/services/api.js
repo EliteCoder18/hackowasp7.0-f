@@ -59,19 +59,29 @@ export const getBackendActor = async () => {
   }
 };
 
-export const registerProof = async (hash, fileName, description, royaltyFee, contactInfo, ownerName, ownerDob) => {
+export const registerProof = async (hash, fileName, description, royaltyFee, contactInfo, ownerName, ownerDob, file) => {
   try {
     const actor = await getBackendActor();
-    const content = [];
-    const contentType = "application/octet-stream";
+
+    // Read file content as Uint8Array
+    let content = new Uint8Array();
+    let contentType = "application/octet-stream";
+    if (file) {
+      const arrayBuffer = await file.arrayBuffer();
+      content = new Uint8Array(arrayBuffer); // <-- Use Uint8Array, not Array.from!
+      contentType = file.type || "application/octet-stream";
+    }
+
+    console.log("Content length sent to backend:", content.length);
+
     const hasRoyalty = Number(royaltyFee) > 0;
 
     return await actor.register_hash(
       hash,
-      content,
+      content, // <-- Pass Uint8Array directly!
       contentType,
       fileName,
-      description, // <-- use the real description here!
+      description,
       ownerName,
       ownerDob,
       royaltyFee.toString(),

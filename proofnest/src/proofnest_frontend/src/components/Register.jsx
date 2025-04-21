@@ -80,6 +80,10 @@ function Register() {
   };
 
   const handleRegister = async () => {
+    if (!file) {
+      setMessage('Please select a file to register.');
+      return;
+    }
     // Your existing validation code...
     
     try {
@@ -89,6 +93,9 @@ function Register() {
       // Calculate file hash
       const fileHash = await calculateSHA256(file);
       
+      // Log file size before upload
+      console.log("File size before upload:", file.size);
+      
       // Call registerProof with ALL required parameters
       await registerProof(
         fileHash,       // hash
@@ -97,7 +104,8 @@ function Register() {
         royaltyFee,     // royaltyFee
         contactDetails, // contactInfo
         ownerName,      // ownerName
-        ownerDob        // ownerDob
+        ownerDob,       // ownerDob
+        file            // <-- pass the file object here!
       );
       
       setHash(fileHash);
