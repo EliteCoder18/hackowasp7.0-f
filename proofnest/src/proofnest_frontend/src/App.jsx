@@ -15,7 +15,7 @@ import Layout from './components/Layout';
 function App() {
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
+ 
       <Route path="/" element={<Layout />}>
         <Route index element={<Landing />} />
         <Route path="register" element={
@@ -33,6 +33,7 @@ function App() {
         <Route path="contact" element={<Contact />} />
         <Route path="feedback" element={<Feedback />} />
         <Route path="*" element={<NotFound />} />
+        <Route path="/login" element={<Login />} />
       </Route>
     </Routes>
   );

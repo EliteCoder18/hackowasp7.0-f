@@ -1,8 +1,9 @@
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+// Updated cn utility to match client
 export function cn(...inputs) {
-  return twMerge(clsx(inputs));
+  return twMerge(clsx(...inputs));
 }
 
 // Format timestamp for display

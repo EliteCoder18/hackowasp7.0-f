@@ -1,95 +1,110 @@
 import React from 'react';
-import { FaEnvelope, FaPhone, FaMapMarkerAlt, FaComments } from 'react-icons/fa';
+import { motion } from 'framer-motion';
 
-function Contact() {
+function ContactSupport() {
+  const fadeIn = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.6 }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-900 text-white py-16 px-4">
-      {/* Header */}
-      <div className="text-center mb-16">
-        <h1 className="text-5xl font-extrabold mb-4 text-white">
-          Connect with <span className="text-blue-400">Us</span>
-        </h1>
-        <div className="w-24 h-1 bg-blue-400 mx-auto mb-6"></div>
-        <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-          We're Here to Help You
-        </p>
-      </div>
+    <div className="bg-black text-white min-h-screen">
+      {/* Hero Section */}
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="relative h-[40vh] overflow-hidden"
+      >
+        <div className="absolute inset-0">
+          <img
+            src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=3840&q=100"
+            alt="Support Banner"
+            className="w-full h-full object-cover filter brightness-50"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/70 to-black"></div>
+        </div>
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="relative h-full flex flex-col items-center justify-center px-4"
+        >
+          <h1 className="text-5xl md:text-6xl font-black text-white tracking-tight mb-4">
+            Connect with <span className="text-gray-400">Us</span>
+          </h1>
+          <div className="w-24 h-1 bg-white mb-6"></div>
+          <p className="text-xl text-gray-200 max-w-2xl text-center">
+            We're Here to Help You
+          </p>
+        </motion.div>
+      </motion.div>
 
       {/* Main Content */}
-      <div className="max-w-5xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="bg-gray-800 p-8 rounded-xl border border-gray-700 hover:border-blue-500 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10">
-            <h2 className="text-2xl font-semibold mb-6 text-white flex items-center">
-              <FaEnvelope className="text-blue-400 mr-3" /> Email Support
-            </h2>
-            <p className="text-gray-300">
-              Reach out to us at{' '}
-              <a href="mailto:support@proofnest.com" className="text-blue-400 hover:underline">
-                support@proofnest.com
-              </a>
-            </p>
-            <p className="text-gray-400 mt-2 text-sm">
-              We respond to email inquiries within 24 hours.
-            </p>
+      <div className="relative mx-auto px-6 pt-6 pb-36 container">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="bg-black shadow-2xl backdrop-blur-md mx-auto p-12 rounded-none max-w-4xl border border-gray-800"
+        >
+          <motion.p {...fadeIn} className="text-gray-300 text-lg mb-12 text-center">
+            At <span className="font-bold text-white">Proofnest </span>, we value our community and strive to provide the best support possible. If you have any questions, issues, or need assistance, feel free to reach out to us.
+          </motion.p>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            <motion.div {...fadeIn} className="group hover:bg-gray-800/50 p-6 rounded-none transition-all duration-300">
+              <h2 className="text-2xl font-semibold mb-4 text-white flex items-center">
+                <span className="text-3xl mr-3">📧</span> Email Support
+              </h2>
+              <p className="text-gray-400 group-hover:text-gray-300">
+                Reach out to us at{' '}
+                <a href="mailto:hostelhustle77@gmail.com" className="text-gray-300 hover:text-white underline">
+                  test@gmail.com
+                </a>
+              </p>
+            </motion.div>
+
+            <motion.div {...fadeIn} className="group hover:bg-gray-800/50 p-6 rounded-none transition-all duration-300">
+              <h2 className="text-2xl font-semibold mb-4 text-white flex items-center">
+                <span className="text-3xl mr-3">📞</span> Call Us
+              </h2>
+              <p className="text-gray-400 group-hover:text-gray-300">
+                Our support team is available at{' '}
+                <span className="text-white">+91 XXXXXXXXXX</span>
+              </p>
+            </motion.div>
+
+            <motion.div {...fadeIn} className="group hover:bg-gray-800/50 p-6 rounded-none transition-all duration-300">
+              <h2 className="text-2xl font-semibold mb-4 text-white flex items-center">
+                <span className="text-3xl mr-3">💬</span> Live Chat
+              </h2>
+              <p className="text-gray-400 group-hover:text-gray-300">
+                Use the live chat feature on our website for instant support
+              </p>
+            </motion.div>
+
+            <motion.div {...fadeIn} className="group hover:bg-gray-800/50 p-6 rounded-none transition-all duration-300">
+              <h2 className="text-2xl font-semibold mb-4 text-white flex items-center">
+                <span className="text-3xl mr-3">📍</span> Visit Us
+              </h2>
+              <p className="text-gray-400 group-hover:text-gray-300">
+                Find us at <span className="text-white">Hostel Block A, Room 102</span>
+              </p>
+            </motion.div>
           </div>
 
-          <div className="bg-gray-800 p-8 rounded-xl border border-gray-700 hover:border-purple-500 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/10">
-            <h2 className="text-2xl font-semibold mb-6 text-white flex items-center">
-              <FaPhone className="text-purple-400 mr-3" /> Call Us
+          <motion.div {...fadeIn} className="text-center mt-12 pt-8 border-t border-gray-700">
+            <h2 className="text-2xl font-semibold mb-4 text-white">
+              WE'RE HERE FOR YOU!
             </h2>
-            <p className="text-gray-300">
-              Technical Support: <span className="text-purple-400">+1 (555) 123-4567</span>
+            <p className="text-gray-400">
+              Our team is dedicated to ensuring a smooth and hassle-free experience for all users. Don't hesitate to get in touch!
             </p>
-            <p className="text-gray-300 mt-2">
-              Business Inquiries: <span className="text-purple-400">+1 (555) 987-6543</span>
-            </p>
-            <p className="text-gray-400 mt-2 text-sm">
-              Available Monday-Friday, 9 AM - 5 PM EST
-            </p>
-          </div>
-
-          <div className="bg-gray-800 p-8 rounded-xl border border-gray-700 hover:border-green-500 transition-all duration-300 hover:shadow-lg hover:shadow-green-500/10">
-            <h2 className="text-2xl font-semibold mb-6 text-white flex items-center">
-              <FaComments className="text-green-400 mr-3" /> Live Chat
-            </h2>
-            <p className="text-gray-300">
-              Use the live chat feature on our website for instant support
-            </p>
-            <p className="text-gray-400 mt-2 text-sm">
-              Chat support is available 24/7 for all registered users
-            </p>
-            <button className="mt-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
-              Start Chat
-            </button>
-          </div>
-
-          <div className="bg-gray-800 p-8 rounded-xl border border-gray-700 hover:border-yellow-500 transition-all duration-300 hover:shadow-lg hover:shadow-yellow-500/10">
-            <h2 className="text-2xl font-semibold mb-6 text-white flex items-center">
-              <FaMapMarkerAlt className="text-yellow-400 mr-3" /> Visit Us
-            </h2>
-            <p className="text-gray-300">
-              ProofNest Headquarters<br />
-              123 Blockchain Avenue<br />
-              Tech District, CA 94107<br />
-              United States
-            </p>
-            <p className="text-gray-400 mt-2 text-sm">
-              Please schedule an appointment before visiting
-            </p>
-          </div>
-        </div>
-
-        <div className="text-center mt-16 p-8 bg-gray-800 rounded-xl border border-gray-700">
-          <h2 className="text-2xl font-semibold mb-4 text-white">
-            WE'RE HERE FOR YOU!
-          </h2>
-          <p className="text-gray-300">
-            Our team is dedicated to ensuring a smooth and hassle-free experience for all users. Don't hesitate to get in touch!
-          </p>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
     </div>
   );
 }
-
-export default Contact;
+export default ContactSupport;

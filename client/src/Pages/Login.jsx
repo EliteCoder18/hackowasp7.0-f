@@ -4,8 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Vortex } from '../components/ui/vortex';
 import { Meteors } from '../components/ui/meteors';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
+
 
 // ICP host URL
 const ICP_HOST = 'https://identity.ic0.app';

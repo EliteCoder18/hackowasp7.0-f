@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
-import { FaStar, FaShieldAlt } from 'react-icons/fa';
+import axios from 'axios';
+import { CheckCircle, AlertCircle, Star, Shield } from 'lucide-react';
 
-function Feedback() {
+const Feedback = () => {
   const [formData, setFormData] = useState({
     subject: '',
     message: '',
     rating: 5,
     category: 'general',
     contact_back: false
+    // Removed name and email fields
   });
   
   const [loading, setLoading] = useState(false);
@@ -32,56 +34,42 @@ function Feedback() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
-    
-    // Simulate API call
     setTimeout(() => {
-      setSuccess(true);
-      setLoading(false);
-      
-      // Reset form after submission
-      setFormData({
-        subject: '',
-        message: '',
-        rating: 5,
-        category: 'general',
-        contact_back: false
-      });
-    }, 1500);
+        setSuccess(true);
+        setLoading(false);
+    }, 1000);
+
+    setError('');
   };
   
   return (
-    <div className="min-h-screen bg-gray-900 text-white py-16 px-4">
-      <div className="max-w-3xl mx-auto">
+    <div className="min-h-screen bg-black text-white py-12">
+      <div className="max-w-3xl mx-auto p-6">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-extrabold text-white mb-2">Feedback</h1>
           <p className="text-gray-300">We'd love to hear your thoughts about the platform!</p>
         </div>
         
         {/* Anonymous Badge */}
-        <div className="bg-gray-800 border border-blue-900 rounded-lg p-4 mb-8 flex items-center">
-          <FaShieldAlt className="h-6 w-6 text-blue-400 mr-3" />
+        <div className="bg-gray-900 border border-blue-900 rounded-lg p-4 mb-6 flex items-center">
+          <Shield className="h-6 w-6 text-blue-400 mr-2" />
           <div>
             <p className="text-blue-300 font-medium">100% Anonymous Feedback</p>
             <p className="text-blue-400 text-sm">Your feedback is completely anonymous. We don't collect any personal information.</p>
           </div>
         </div>
         
-        <div className="bg-gray-800 shadow-xl rounded-xl overflow-hidden border border-gray-700">
+        <div className="bg-gray-950 shadow-xl rounded-lg overflow-hidden">
           {success ? (
             <div className="p-8 text-center">
-              <div className="w-16 h-16 bg-green-600 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
+              <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
               <h2 className="text-2xl font-bold text-white mb-2">Thank You!</h2>
               <p className="text-gray-300 mb-6">
                 Your feedback has been successfully submitted. We appreciate your input!
               </p>
               <button
                 onClick={() => setSuccess(false)}
-                className="bg-white hover:bg-gray-200 text-black font-medium px-6 py-3 rounded transition duration-200"
+                className="bg-white hover:bg-gray-200 text-black font-medium px-6 py-3 rounded-none transition duration-200"
               >
                 Submit Another Feedback
               </button>
@@ -91,9 +79,7 @@ function Feedback() {
               {error && (
                 <div className="mb-6 p-4 bg-red-900 border-l-4 border-red-500 rounded-md">
                   <div className="flex">
-                    <svg className="h-5 w-5 text-red-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
+                    <AlertCircle className="h-5 w-5 text-red-400 mr-2" />
                     <p className="text-sm text-red-200">{error}</p>
                   </div>
                 </div>
@@ -105,7 +91,7 @@ function Feedback() {
                     Subject <span className="text-red-400">*</span>
                   </label>
                   <input
-                    className="w-full px-4 py-3 rounded-lg border border-gray-700 bg-gray-900 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
+                    className="w-full px-4 py-3 rounded-lg border border-gray-700 bg-black text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
                     id="subject"
                     name="subject"
                     type="text"
@@ -121,7 +107,7 @@ function Feedback() {
                     Category <span className="text-red-400">*</span>
                   </label>
                   <select
-                    className="w-full px-4 py-3 rounded-lg border border-gray-700 bg-gray-900 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
+                    className="w-full px-4 py-3 rounded-lg border border-gray-700 bg-black text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
                     id="category"
                     name="category"
                     value={formData.category}
@@ -149,9 +135,9 @@ function Feedback() {
                         className="focus:outline-none mr-1"
                       >
                         {star <= formData.rating ? (
-                          <FaStar className="h-8 w-8 text-yellow-400" />
+                          <Star className="h-8 w-8 text-yellow-400 fill-current" />
                         ) : (
-                          <FaStar className="h-8 w-8 text-gray-700" />
+                          <Star className="h-8 w-8 text-gray-700" />
                         )}
                       </button>
                     ))}
@@ -164,7 +150,7 @@ function Feedback() {
                     Message <span className="text-red-400">*</span>
                   </label>
                   <textarea
-                    className="w-full px-4 py-3 rounded-lg border border-gray-700 bg-gray-900 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 min-h-[150px]"
+                    className="w-full px-4 py-3 rounded-lg border border-gray-700 bg-black text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 min-h-[150px]"
                     id="message"
                     name="message"
                     value={formData.message}
@@ -174,23 +160,9 @@ function Feedback() {
                   ></textarea>
                 </div>
                 
-                <div className="flex items-center">
-                  <input
-                    id="contact_back"
-                    name="contact_back"
-                    type="checkbox"
-                    checked={formData.contact_back}
-                    onChange={handleChange}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600 rounded"
-                  />
-                  <label htmlFor="contact_back" className="ml-2 block text-sm text-gray-300">
-                    I'd like to be contacted about this feedback (requires login)
-                  </label>
-                </div>
-                
                 <div className="flex items-center justify-end">
                   <button
-                    className="bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-medium px-6 py-3 rounded transition duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
+                    className="bg-white hover:bg-gray-200 text-black font-medium px-6 py-3 rounded-none transition duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
                     type="submit"
                     disabled={loading}
                   >
@@ -200,7 +172,7 @@ function Feedback() {
                         Sending...
                       </>
                     ) : (
-                      'Submit Feedback'
+                      'Submit Anonymous Feedback'
                     )}
                   </button>
                 </div>
@@ -208,7 +180,7 @@ function Feedback() {
             </div>
           )}
           
-          <div className="bg-gray-900 px-8 py-4 border-t border-gray-700">
+          <div className="bg-gray-900 px-8 py-4 border-t border-gray-800">
             <p className="text-sm text-gray-400 text-center">
               We value your feedback and will use it to improve our platform
             </p>
@@ -217,6 +189,6 @@ function Feedback() {
       </div>
     </div>
   );
-}
+};
 
 export default Feedback;

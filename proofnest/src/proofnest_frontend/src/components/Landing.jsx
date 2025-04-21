@@ -1,118 +1,147 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { FaShieldAlt, FaRocket, FaUserFriends } from 'react-icons/fa';
+import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { Vortex } from '../ui/vortex';
+import { FaGoogle, FaGithub, FaShieldAlt, FaRocket, FaUserFriends } from 'react-icons/fa';
+import Navbar from './Navbar';
+import Footer from './Footer';
 
 function Landing() {
+  const navigate = useNavigate();
+
+  const handleNavigate = () => {
+    navigate('/login');
+  };
+
   return (
-    <div className="relative min-h-screen bg-gray-900 text-white flex flex-col">
-      {/* Hero Section */}
-      <div className="w-full py-20 px-4 bg-gradient-to-br from-gray-900 via-blue-900/30 to-gray-900">
-        <div className="text-center max-w-4xl mx-auto">
-          <h1 className="text-5xl md:text-7xl font-extrabold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
-            ProofNest
-          </h1>
-          <p className="text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
-            The ultimate platform for securing and verifying your digital assets with blockchain technology.
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link 
-              to="/login"
-              className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-800 transition-all duration-200 transform hover:-translate-y-1 shadow-lg hover:shadow-blue-500/20"
-            >
-              Get Started
-            </Link>
-            <Link 
-              to="/verify"
-              className="px-8 py-3 bg-gray-800 text-white font-semibold rounded-lg hover:bg-gray-700 border border-gray-700 transition-all duration-200 transform hover:-translate-y-1"
-            >
-              Verify Content
-            </Link>
-          </div>
-        </div>
-      </div>
+    <Vortex
+      particleCount={800}
+      baseSpeed={0.4}
+      rangeSpeed={1.5}
+      baseRadius={1}
+      rangeRadius={2}
+      backgroundColor="#000000"
+    >
 
-      {/* Features Section */}
-      <div className="py-20 px-4 bg-black">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12 text-white">Why Choose ProofNest?</h2>
-          
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 transition-all duration-300 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 hover:-translate-y-1">
-              <div className="flex items-center mb-4">
-                <FaRocket className="text-2xl text-blue-400 mr-3" />
-                <h3 className="text-xl font-semibold text-white">Fast Registration</h3>
-              </div>
-              <p className="text-gray-300">
-                Register your digital assets in seconds with our streamlined verification process.
-              </p>
-            </div>
-            
-            <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 transition-all duration-300 hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/10 hover:-translate-y-1">
-              <div className="flex items-center mb-4">
-                <FaShieldAlt className="text-2xl text-purple-400 mr-3" />
-                <h3 className="text-xl font-semibold text-white">Secure Verification</h3>
-              </div>
-              <p className="text-gray-300">
-                Blockchain-backed verification ensures tamper-proof security for your assets.
-              </p>
-            </div>
-            
-            <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 transition-all duration-300 hover:border-cyan-500 hover:shadow-lg hover:shadow-cyan-500/10 hover:-translate-y-1">
-              <div className="flex items-center mb-4">
-                <FaUserFriends className="text-2xl text-cyan-400 mr-3" />
-                <h3 className="text-xl font-semibold text-white">User-Friendly</h3>
-              </div>
-              <p className="text-gray-300">
-                Intuitive interface designed for both beginners and experts in asset management.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* How It Works Section */}
-      <div className="py-20 px-4 bg-gray-900">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-16 text-white">How It Works</h2>
-          
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="h-16 w-16 rounded-full bg-blue-900/50 border border-blue-500 flex items-center justify-center mx-auto mb-6 text-3xl font-bold text-blue-400">1</div>
-              <h3 className="text-xl font-semibold mb-3 text-white">Register Your Content</h3>
-              <p className="text-gray-400">Upload your files and register them securely on the blockchain with a unique fingerprint.</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="h-16 w-16 rounded-full bg-purple-900/50 border border-purple-500 flex items-center justify-center mx-auto mb-6 text-3xl font-bold text-purple-400">2</div>
-              <h3 className="text-xl font-semibold mb-3 text-white">Get Blockchain Proof</h3>
-              <p className="text-gray-400">Receive immutable proof of ownership and timestamps secured by blockchain technology.</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="h-16 w-16 rounded-full bg-cyan-900/50 border border-cyan-500 flex items-center justify-center mx-auto mb-6 text-3xl font-bold text-cyan-400">3</div>
-              <h3 className="text-xl font-semibold mb-3 text-white">Verify Anytime</h3>
-              <p className="text-gray-400">Check authenticity and ownership of any content using our secure verification system.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* CTA Section */}
-      <div className="py-16 px-4 bg-gradient-to-br from-blue-900/50 via-gray-900 to-indigo-900/50">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-6 text-white">Ready to Secure Your Digital Assets?</h2>
-          <p className="text-gray-300 mb-8 text-lg">
-            Join thousands of creators protecting their work with blockchain technology.
-          </p>
-          <Link 
-            to="/login"
-            className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-800 transition-all duration-200 transform hover:-translate-y-1 inline-block"
+      <div className="relative min-h-screen bg-transparent text-white flex flex-col items-center justify-center px-4 py-20 md:px-8 overflow-hidden space-y-16">
+        {/* Hero Section */}
+        <motion.div
+          className="text-center z-10 relative max-w-3xl mx-auto"
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+        >
+          <motion.h1 
+            className="text-6xl md:text-7xl font-bold mb-6"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.8 }}
           >
-            Get Started Now
-          </Link>
-        </div>
+            <span className="bg-white text-transparent bg-clip-text">ProofNest</span>
+          </motion.h1>
+          <motion.p 
+            className="text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4, duration: 0.8 }}
+          >
+            The ultimate platform for securing and verifying your digital assets with blockchain technology.
+          </motion.p>
+        </motion.div>
+
+        {/* Features Section */}
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-3 gap-8 z-10 relative w-full max-w-6xl"
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: { opacity: 0 },
+            visible: { opacity: 1 },
+          }}
+          transition={{ duration: 0.6, delayChildren: 0.3, staggerChildren: 0.2 }}
+        >
+          <motion.div
+            className="backdrop-blur-md bg-white/5 p-6 rounded-2xl shadow-lg border border-white/10 transform transition-all duration-300 hover:scale-105 hover:border-purple-500/30 hover:shadow-purple-500/20 hover:shadow-lg"
+            whileHover={{ y: -5 }}
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              visible: { opacity: 1, y: 0 }
+            }}
+          >
+            <div className="flex items-center mb-4">
+              <FaRocket className="text-2xl text-blue-400 mr-3" />
+              <h2 className="text-xl font-semibold text-white">Fast Registration</h2>
+            </div>
+            <p className="text-gray-300 leading-relaxed">
+              Register your digital assets in seconds with our streamlined verification process.
+            </p>
+          </motion.div>
+          
+          <motion.div
+            className="backdrop-blur-md bg-white/5 p-6 rounded-2xl shadow-lg border border-white/10 transform transition-all duration-300 hover:scale-105 hover:border-blue-500/30 hover:shadow-blue-500/20 hover:shadow-lg"
+            whileHover={{ y: -5 }}
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              visible: { opacity: 1, y: 0 }
+            }}
+          >
+            <div className="flex items-center mb-4">
+              <FaShieldAlt className="text-2xl text-purple-400 mr-3" />
+              <h2 className="text-xl font-semibold text-white">Secure Verification</h2>
+            </div>
+            <p className="text-gray-300 leading-relaxed">
+              Blockchain-backed verification ensures tamper-proof security for your assets.
+            </p>
+          </motion.div>
+          
+          <motion.div
+            className="backdrop-blur-md bg-white/5 p-6 rounded-2xl shadow-lg border border-white/10 transform transition-all duration-300 hover:scale-105 hover:border-cyan-500/30 hover:shadow-cyan-500/20 hover:shadow-lg"
+            whileHover={{ y: -5 }}
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              visible: { opacity: 1, y: 0 }
+            }}
+          >
+            <div className="flex items-center mb-4">
+              <FaUserFriends className="text-2xl text-cyan-400 mr-3" />
+              <h2 className="text-xl font-semibold text-white">User-Friendly</h2>
+            </div>
+            <p className="text-gray-300 leading-relaxed">
+              Intuitive interface designed for both beginners and experts in asset management.
+            </p>
+          </motion.div>
+        </motion.div>
+
+        {/* Call to Action Section */}
+        <motion.div
+          className="relative w-full max-w-md backdrop-blur-md bg-white/5 p-8 rounded-2xl shadow-xl border border-white/10 overflow-hidden z-10"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.6 }}
+        >
+          <h3 className="text-2xl font-semibold mb-6 text-center text-white">
+            Ready to Secure Your Assets?
+          </h3>
+          <motion.button
+            onClick={handleNavigate}
+            className="w-full p-4 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 hover:from-purple-500 hover:to-blue-600 text-white font-semibold flex items-center justify-center gap-2 shadow-lg transition-all"
+            whileHover={{ scale: 1.03, boxShadow: '0 0 15px rgba(124, 58, 237, 0.5)' }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <span className="text-lg">Get Started Now</span>
+          </motion.button>
+          <div className="flex justify-center mt-6 space-x-4">
+            <motion.div whileHover={{ scale: 1.2, color: '#4285F4' }}>
+              <FaGoogle className="text-2xl text-gray-300 cursor-pointer" />
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.2, color: '#ffffff' }}>
+              <FaGithub className="text-2xl text-gray-300 cursor-pointer" />
+            </motion.div>
+          </div>
+        </motion.div>
       </div>
-    </div>
+
+    </Vortex>
   );
 }
 
