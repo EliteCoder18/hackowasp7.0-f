@@ -1,0 +1,109 @@
+import { Actor, HttpAgent } from '@dfinity/agent';
+import { idlFactory } from '../../../declarations/proof_backend/proof_backend.did.js';
+
+// Your canister ID
+const CANISTER_ID = 'uxrrr-q7777-77774-qaaaq-cai';
+
+// Detect if running on mainnet (production)
+const isProduction = process.env.NODE_ENV === 'production';
+
+// Use the correct host for mainnet or local
+const MAINNET_HOST = 'https://icp0.io'; // or use a specific boundary node if needed
+const LOCAL_HOST = 'http://localhost:4943';
+
+const createAgent = async () => {
+  const agent = new HttpAgent({
+    host: isProduction ? MAINNET_HOST : LOCAL_HOST,
+    // Do NOT set verifyQuerySignatures or fetchRootKey in production
+  });
+
+  // Only fetch root key in local development
+  if (!isProduction) {
+    try {
+      await agent.fetchRootKey();
+      console.log("Fetched root key for local replica.");
+    } catch (err) {
+      console.warn("Could not fetch root key:", err);
+    }
+  }
+
+  return agent;
+};
+
+export const getBackendActor = async () => {
+  try {
+    const agent = await createAgent();
+
+    const actor = Actor.createActor(idlFactory, {
+      agent,
+      canisterId: CANISTER_ID,
+    });
+
+    // Optional: Remove test queries in production
+    if (!isProduction) {
+      try {
+        const greeting = await actor.greet?.("test");
+        if (greeting) console.log("Actor test successful:", greeting);
+      } catch (testError) {
+        console.warn("Actor test failed:", testError);
+      }
+    }
+
+    return actor;
+  } catch (error) {
+    console.error("Actor creation error:", error);
+    throw error;
+  }
+};
+
+export const registerProof = async (hash, fileName, royaltyFee, contactInfo, ownerName, ownerDob) => {
+  try {
+    const actor = await getBackendActor();
+    const content = [];
+    const contentType = "application/octet-stream";
+    const description = "Registered via frontend";
+    const hasRoyalty = Number(royaltyFee) > 0;
+
+    return await actor.register_hash(
+      hash,
+      content,
+      contentType,
+      fileName,
+      description,
+      ownerName,
+      ownerDob,
+      royaltyFee.toString(),
+      hasRoyalty,
+      contactInfo
+    );
+  } catch (error) {
+    console.error("Register proof error:", error);
+    throw error;
+  }
+};
+
+export const verifyProof = async (hash) => {
+  try {
+    const actor = await getBackendActor();
+    const result = await actor.verify_hash(hash);
+
+    if (result) {
+      return {
+        exists: true,
+        fileName: result.name,
+        ownerName: result.owner_name,
+        timestamp: Number(result.timestamp),
+        royaltyFee: result.royalty_fee,
+        contactInfo: result.contact_details,
+        hasRoyalty: result.has_royalty,
+        description: result.description,
+        ownerDob: result.owner_dob
+      };
+    } else {
+      return { exists: false };
+    }
+  } catch (error) {
+    console.error("Verify proof error:", error);
+    throw error;
+  }
+};

@@ -1,0 +1,21 @@
+type HashInfo = record {
+    user: principal;
+    timestamp: nat64;
+    content: opt blob;
+    content_type: text;
+    name: text;
+    description: text;
+    owner_name: text;
+    owner_dob: text;
+    royalty_fee: text;
+    has_royalty: bool;
+    contact_details: text;
+};
+
+service : {
+    register_hash: (text, blob, text, text, text, text, text, text, bool, text) -> ();
+    get_hash_info: (text) -> (opt HashInfo) query;
+    get_all_files: () -> (vec record { text; HashInfo }) query;
+    verify_hash: (text) -> (opt HashInfo) query;
+    get_hash_metadata: (text) -> (opt HashInfo) query;
+}
