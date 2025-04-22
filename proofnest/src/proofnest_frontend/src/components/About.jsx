@@ -41,7 +41,7 @@ export default function AboutUs() {
         <div className="absolute inset-0">
           <img
             src="https://images.unsplash.com/photo-1517502884422-41eaead166d4?ixlib=rb-4.0.3&auto=format&fit=crop&w=3840&q=100"
-            alt="Modern Architecture"
+            alt="img"
             className="w-full h-full object-cover brightness-70"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-black/70"></div>

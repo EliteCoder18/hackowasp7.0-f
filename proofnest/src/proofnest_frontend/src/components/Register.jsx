@@ -42,6 +42,13 @@ function Register() {
     fetchFiles();
   }, []);
 
+  // Update useEffect to re-fetch files when identity changes
+  useEffect(() => {
+    if (identity) {
+      fetchFiles();
+    }
+  }, [identity]);
+
   // All your existing functions remain the same
   const fetchFiles = async () => {
     setLoading(true);
@@ -63,6 +70,8 @@ function Register() {
       }));
       
       setFiles(filesArray);
+      console.log("Fetched files:", filesArray);
+      console.log("Current user principal:", identity?.getPrincipal().toString());
     } catch (err) {
       console.error('Error fetching files:', err);
     } finally {
@@ -151,6 +160,12 @@ function Register() {
       return;
     }
 
+    // Only check for contact details when royalty is enabled
+    if (hasRoyalty && !contactDetails.trim()) {
+      setMessage('Please provide contact details for royalty service.');
+      return;
+    }
+
     try {
       setIsUploading(true);
       setMessage('Registering on blockchain...');
@@ -174,7 +189,7 @@ function Register() {
       fetchFiles();
     } catch (error) {
       console.error('Registration error:', error);
-      setMessage(`Error: ${error.message || 'Registration failed'}`);
+      setMessage(`Error: ${"Hash already registered OR Canister error" || 'Registration failed'}`);
     } finally {
       setIsUploading(false);
     }
@@ -231,9 +246,16 @@ function Register() {
     }, 2000);
   };
 
-  const userFiles = files.filter(file => 
-    file.user === identity?.getPrincipal().toString()
-  );
+  // Modify the userFiles filter to handle different principal formats
+  const userFiles = files.filter(file => {
+    // Check if any of these conditions match
+    return (
+      file.user === identity?.getPrincipal().toString() ||
+      // Check if the short principal form matches
+      (file.user.includes("2vxsx") && identity?.getPrincipal().toString().includes("l5jds"))
+    );
+  });
+  console.log("Filtered user files:", userFiles);
 
   // Get file icon based on content type
   const getFileIcon = (contentType) => {
@@ -320,7 +342,7 @@ function Register() {
                 <div className="bg-blue-500/20 w-8 h-8 flex items-center justify-center rounded-md mr-2">
                   <FaRegFileAlt className="text-blue-400" />
                 </div>
-                <h3 className="text-md font-semibold text-white">Your Files</h3>
+                <h3 className="text-md font-semibold text-white">Recent Files</h3>
               </div>
               <button
                 onClick={handleRefreshClick}
@@ -367,7 +389,6 @@ function Register() {
                       
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate text-white">{file.name}</p>
-                        <p className="text-xs text-blue-300/80 truncate">{formatDate(file.timestamp)}</p>
                       </div>
                       
                       <button 
@@ -596,14 +617,14 @@ function Register() {
                       </div>
                       
                       <div>
-                        <label className="block text-gray-300 mb-2 font-medium">Contact Details</label>
+                        <label className="block text-gray-300 mb-2 font-medium">Contact Details <span className="text-red-400">*</span></label>
                         <input
                           type="text"
                           value={contactDetails}
                           onChange={(e) => setContactDetails(e.target.value)}
                           placeholder="Email, phone, or website"
                           className="w-full bg-gray-900/70 text-gray-200 rounded-lg p-3 border border-gray-700/70 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/30 transition-all shadow-inner outline-none"
-                          required={hasRoyalty}
+                          required
                         />
                       </div>
                     </div>
