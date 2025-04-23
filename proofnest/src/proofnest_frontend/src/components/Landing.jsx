@@ -15,6 +15,7 @@ import {
   FaUsers
 } from 'react-icons/fa';
 import { MovingGradient, PulsingGradient } from '../ui/MovingGradient';
+import img from '../assets/pic1.avif'
 
 const testimonials = [
   {
@@ -183,9 +184,8 @@ function Landing() {
   const [isVisible, setIsVisible] = useState(false);
   const [currentStat, setCurrentStat] = useState(0);
   const stats = [
-    { value: "10M+", label: "Digital works protected" },
     { value: "99.9%", label: "Verification accuracy" },
-    { value: "5000+", label: "Active artists" },
+    { value: "500+", label: "Active artists" },
     { value: "24/7", label: "Support available" }
   ];
 
@@ -268,7 +268,7 @@ function Landing() {
       {/* Hero section with enhanced animated background */}
       <div
         id="section-0"
-        className="min-h-screen relative flex flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-slate-50 to-purple-50"
+        className="min-h-screen select-none relative flex flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-slate-50 to-purple-50"
       >
         {/* Advanced background layers */}
         <div className="absolute inset-0 bg-[length:200px_200px]"
@@ -317,7 +317,7 @@ function Landing() {
         </div>
 
         {/* Constellation particles */}
-        <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute select-none inset-0 overflow-hidden">
           <svg className="absolute w-full h-full">
             {particles.map((particle, index) => (
               <motion.circle
@@ -373,7 +373,7 @@ function Landing() {
         </div>
 
         {/* Animated floating shapes in background - keeping existing layer but with enhancements */}
-        <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute inset-0 select-none overflow-hidden">
           {floatingShapes.map((shape, index) => (
             <motion.div
               key={index}
@@ -442,7 +442,7 @@ function Landing() {
           </motion.div>
 
           {/* Headline with animated characters */}
-          <div className="overflow-hidden">
+          <div className="overflow-hidden select-none">
             <motion.h1
               className="text-6xl md:text-7xl font-serif font-bold mb-6 leading-tight"
               initial={{ opacity: 0, y: 100 }}
@@ -455,7 +455,7 @@ function Landing() {
                 staggerChildren: 0.08
               }}
             >
-              <GradientText animate={true}>Protect Your Creative Legacy</GradientText>
+              <GradientText className='pb-8 select-none' animate={true}>Protect Your Creative Legacy</GradientText>
             </motion.h1>
           </div>
 
@@ -469,7 +469,7 @@ function Landing() {
             />
 
             <motion.p
-              className="text-xl md:text-2xl text-gray-600 max-w-2xl mx-auto leading-relaxed font-light mb-8 relative z-10"
+              className="text-xl md:text-2xl text-gray-700 max-w-2xl mx-auto leading-relaxed font-light mb-8 relative z-10"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6, duration: 0.8 }}
@@ -548,26 +548,12 @@ function Landing() {
         </motion.div>
 
         {/* Scroll Down Indicator */}
-        <motion.div
-          className="absolute bottom-12 left-0 right-0 flex justify-center z-20"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.5, duration: 1 }}
-        >
-          <motion.button
-            onClick={scrollToNext}
-            className="flex flex-col items-center text-gray-500 hover:text-indigo-600 transition-colors"
-            animate={{ y: [0, 10, 0] }}
-            transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-          >
-            <span className="mb-2 text-sm">Scroll Down</span>
-            <FaChevronDown />
-          </motion.button>
-        </motion.div>
+      
+        
       </div>
 
       {/* Features Section */}
-      <div id="section-1" className="bg-white py-24 relative overflow-hidden">
+      <div id="section-1" className="bg-white py-24 relative select-none overflow-hidden">
         {/* Decorative elements */}
         <motion.div
           className="absolute top-0 left-0 w-full h-20 bg-gradient-to-b from-purple-50 to-transparent"
@@ -607,7 +593,7 @@ function Landing() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.3 }}
               viewport={{ once: true }}
-              className="text-4xl md:text-5xl font-serif font-bold mb-6 text-gray-900"
+              className="text-4xl md:text-5xl mt-0 font-serif font-bold mb-6 text-gray-900"
             >
               Crafted for <GradientText from="from-pink-500" to="to-orange-400">Creators</GradientText>,
               By <GradientText>Creators</GradientText>
@@ -651,136 +637,337 @@ function Landing() {
 
       {/* How It Works Section */}
       <div id="section-3" className="bg-gradient-to-b from-white to-indigo-50/50 py-24 relative overflow-hidden">
-        <div className="container mx-auto px-6 md:px-12 relative z-10">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 1 }}
-            viewport={{ once: true }}
-            className="max-w-xl mx-auto text-center mb-20"
-          >
-            <motion.span
-              className="inline-block px-4 py-1 bg-purple-50 text-purple-700 rounded-full text-sm font-medium mb-3"
-              initial={{ opacity: 0, y: -20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              viewport={{ once: true }}
-            >
-              Simple Process
-            </motion.span>
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-              viewport={{ once: true }}
-              className="text-4xl md:text-5xl font-serif font-bold mb-6 text-gray-900"
-            >
-              How <GradientText>ProofNest</GradientText> Works
-            </motion.h2>
-          </motion.div>
+  {/* Animated background elements */}
+  <div className="absolute inset-0 overflow-hidden">
+    <motion.div 
+      className="absolute w-[800px] h-[800px] rounded-full bg-indigo-100/30 blur-3xl"
+      style={{ top: '20%', left: '-20%' }}
+      animate={{ 
+        scale: [1, 1.1, 1],
+        x: [0, 20, 0],
+        opacity: [0.2, 0.3, 0.2]
+      }}
+      transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+    />
+    <motion.div 
+      className="absolute w-[600px] h-[600px] rounded-full bg-purple-100/20 blur-3xl"
+      style={{ bottom: '-10%', right: '-10%' }}
+      animate={{ 
+        scale: [1, 1.2, 1],
+        y: [0, -30, 0],
+        opacity: [0.15, 0.25, 0.15]
+      }}
+      transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+    />
+  </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-16 relative">
-            {/* Connecting line */}
-            <div className="hidden md:block absolute top-24 left-0 right-0 h-0.5 bg-indigo-100 z-0"></div>
+  {/* Connecting dots pattern */}
+  <div className="absolute inset-0 opacity-10" 
+    style={{ 
+      backgroundImage: 'radial-gradient(circle, rgba(99, 102, 241, 0.4) 1px, transparent 1px)',
+      backgroundSize: '30px 30px'
+    }}>
+  </div>
 
-            {/* Step 1 */}
-            <motion.div
-              className="relative z-10"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              viewport={{ once: true }}
+  <div className="container select-none mx-auto px-6 md:px-12 relative z-10">
+    <motion.div
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      transition={{ duration: 1 }}
+      viewport={{ once: true }}
+      className="max-w-xl mx-auto text-center mb-20"
+    >
+      <motion.span
+        className="inline-block px-4 py-1 bg-purple-50 text-purple-700 rounded-full text-sm font-medium mb-3"
+        initial={{ opacity: 0, y: -20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        viewport={{ once: true }}
+      >
+        Simple Process
+      </motion.span>
+      <motion.h2
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.3 }}
+        viewport={{ once: true }}
+        className="text-4xl md:text-5xl font-serif font-bold mb-6"
+      >
+       <span className='bg-black bg-clip-text text-transparent'>How</span>  <span className="bg-gradient-to-r from-pink-500 to bg-orange-400 bg-clip-text text-transparent">ProofNest</span> <span className='bg-black bg-clip-text text-transparent'>Works</span>
+      </motion.h2>
+    </motion.div>
+
+    {/* Improved process cards with connecting line */}
+    <div className="relative">
+      {/* Horizontal connecting line */}
+      <motion.div 
+        className="hidden md:block absolute top-[100px] left-[15%] right-[15%] h-1 bg-gradient-to-r from-indigo-100 via-purple-200 to-indigo-100 z-0"
+        initial={{ scaleX: 0, opacity: 0 }}
+        whileInView={{ scaleX: 1, opacity: 1 }}
+        transition={{ duration: 1, delay: 0.5 }}
+        viewport={{ once: true }}
+      />
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+        {/* Step 1 Card */}
+        <motion.div
+          className="relative z-10"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          viewport={{ once: true }}
+          whileHover={{ y: -5, boxShadow: "0 25px 50px -12px rgba(99, 102, 241, 0.15)" }}
+        >
+          <div className="bg-white rounded-2xl shadow-xl p-8 border border-indigo-50 h-full flex flex-col items-center text-center relative overflow-hidden">
+            {/* Number indicator */}
+            <motion.div 
+              className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-2xl mb-8 relative z-10"
+              whileHover={{ 
+                scale: 1.1,
+                boxShadow: "0 0 0 8px rgba(99, 102, 241, 0.1)"
+              }}
             >
-              <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 h-full">
-                <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xl mb-6 mx-auto">1</div>
-                <h3 className="text-xl font-medium text-center mb-4">Upload Your Creation</h3>
-                <p className="text-gray-600 text-center">Simply upload your digital artwork, writing, music, or any creative asset to our secure platform.</p>
-
-                <motion.div
-                  className="mt-8 text-center"
-                  whileInView={{
-                    rotate: [0, 5, -5, 0],
-                    y: [0, -5, 0]
-                  }}
-                  transition={{ duration: 2, delay: 1, repeat: Infinity, repeatDelay: 5 }}
-                  viewport={{ once: true }}
-                >
-                  <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="mx-auto">
-                    <rect x="10" y="10" width="60" height="60" rx="8" stroke="#6366F1" strokeWidth="2" strokeDasharray="4 4" />
-                    <path d="M40 30V50M40 50L33 43M40 50L47 43" stroke="#6366F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </motion.div>
-              </div>
+              <motion.span
+                animate={{ scale: [1, 1.15, 1] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              >
+                1
+              </motion.span>
             </motion.div>
 
-            {/* Step 2 */}
+            {/* Decorative element */}
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-indigo-50 rounded-full opacity-30" />
+            
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">Upload Your Creation</h3>
+            <p className="text-gray-600 mb-8">
+              Simply upload your digital artwork, writing, music, or any creative asset to our secure platform.
+            </p>
+
+            {/* Enhanced animated icon */}
             <motion.div
-              className="relative z-10"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
+              className="mt-auto"
+              whileHover={{ scale: 1.1, y: -5 }}
+              whileInView={{
+                y: [0, -8, 0],
+              }}
+              transition={{ 
+                y: { repeat: Infinity, duration: 3, ease: "easeInOut", repeatDelay: 1 },
+                scale: { duration: 0.2 }
+              }}
               viewport={{ once: true }}
             >
-              <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 h-full">
-                <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xl mb-6 mx-auto">2</div>
-                <h3 className="text-xl font-medium text-center mb-4">Blockchain Verification</h3>
-                <p className="text-gray-600 text-center">We generate a unique cryptographic signature and securely record it on the blockchain.</p>
-
-                <motion.div
-                  className="mt-8 text-center"
-                  whileInView={{
-                    scale: [1, 1.1, 1],
-                  }}
-                  transition={{ duration: 2, delay: 2, repeat: Infinity, repeatDelay: 5 }}
-                  viewport={{ once: true }}
-                >
-                  <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="mx-auto">
-                    <rect x="15" y="20" width="50" height="40" rx="4" stroke="#6366F1" strokeWidth="2" />
-                    <path d="M25 40H55" stroke="#6366F1" strokeWidth="2" />
-                    <path d="M30 30H35" stroke="#6366F1" strokeWidth="2" strokeLinecap="round" />
-                    <path d="M30 50H35" stroke="#6366F1" strokeWidth="2" strokeLinecap="round" />
-                    <path d="M45 50H50" stroke="#6366F1" strokeWidth="2" strokeLinecap="round" />
-                    <path d="M45 30H50" stroke="#6366F1" strokeWidth="2" strokeLinecap="round" />
-                  </svg>
-                </motion.div>
-              </div>
-            </motion.div>
-
-            {/* Step 3 */}
-            <motion.div
-              className="relative z-10"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
-              viewport={{ once: true }}
-            >
-              <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 h-full">
-                <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xl mb-6 mx-auto">3</div>
-                <h3 className="text-xl font-medium text-center mb-4">Permanent Protection</h3>
-                <p className="text-gray-600 text-center">Receive your ownership certificate with timestamped proof that's indisputable and permanent.</p>
-
-                <motion.div
-                  className="mt-8 text-center"
-                  whileInView={{
-                    rotate: [0, 0, 0, -5, 0],
-                  }}
-                  transition={{ duration: 1.5, delay: 3, repeat: Infinity, repeatDelay: 5 }}
-                  viewport={{ once: true }}
-                >
-                  <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="mx-auto">
-                    <path d="M25 35H55V55C55 56.1046 54.1046 57 53 57H27C25.8954 57 25 56.1046 25 55V35Z" stroke="#6366F1" strokeWidth="2" />
-                    <path d="M25 35V29C25 26.2386 27.2386 24 30 24H50C52.7614 24 55 26.2386 55 29V35" stroke="#6366F1" strokeWidth="2" />
-                    <path d="M33 44L37 48L47 38" stroke="#6366F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </motion.div>
-              </div>
+              <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <motion.rect 
+                  x="15" y="15" width="50" height="50" rx="8" 
+                  stroke="#8B5CF6" 
+                  strokeWidth="2" 
+                  strokeDasharray="4 4"
+                  animate={{ strokeDashoffset: [0, 20] }}
+                  transition={{ repeat: Infinity, duration: 8, ease: "linear" }}
+                />
+                <motion.path 
+                  d="M40 30V50M40 50L33 43M40 50L47 43" 
+                  stroke="#8B5CF6" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                  animate={{ y: [0, -4, 0], opacity: [0.7, 1, 0.7] }}
+                  transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                />
+              </svg>
             </motion.div>
           </div>
-        </div>
+        </motion.div>
+
+        {/* Step 2 Card */}
+        <motion.div
+          className="relative z-10"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          viewport={{ once: true }}
+          whileHover={{ y: -5, boxShadow: "0 25px 50px -12px rgba(99, 102, 241, 0.15)" }}
+        >
+          <div className="bg-white rounded-2xl shadow-xl p-8 border border-indigo-50 h-full flex flex-col items-center text-center relative overflow-hidden">
+            {/* Number indicator */}
+            <motion.div 
+              className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-2xl mb-8 relative z-10"
+              whileHover={{ 
+                scale: 1.1,
+                boxShadow: "0 0 0 8px rgba(99, 102, 241, 0.1)"
+              }}
+            >
+              <motion.span
+                animate={{ scale: [1, 1.15, 1] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+              >
+                2
+              </motion.span>
+            </motion.div>
+
+            {/* Decorative element */}
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-indigo-50 rounded-full opacity-30" />
+
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">Blockchain Verification</h3>
+            <p className="text-gray-600 mb-8">
+              We generate a unique cryptographic signature and securely record it on the blockchain.
+            </p>
+
+            {/* Enhanced animated icon */}
+            <motion.div
+              className="mt-auto"
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              whileInView={{
+                rotate: [0, 2, -2, 0]
+              }}
+              transition={{ 
+                rotate: { repeat: Infinity, duration: 5, ease: "easeInOut" },
+                scale: { duration: 0.2 }
+              }}
+              viewport={{ once: true }}
+            >
+              <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <motion.rect 
+                  x="15" y="20" width="50" height="40" rx="4" 
+                  stroke="#8B5CF6" strokeWidth="2" 
+                  fill="transparent"
+                  animate={{ stroke: ["#8B5CF6", "#6366F1", "#8B5CF6"] }}
+                  transition={{ duration: 3, repeat: Infinity }}
+                />
+                <motion.path 
+                  d="M15 32H65" 
+                  stroke="#8B5CF6" strokeWidth="2"
+                  animate={{ strokeDasharray: [0, 50], strokeDashoffset: [0, -100] }}
+                  transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+                />
+                <motion.path 
+                  d="M15 48H65" 
+                  stroke="#8B5CF6" strokeWidth="2" 
+                  animate={{ strokeDasharray: [0, 50], strokeDashoffset: [0, 100] }}
+                  transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                />
+                <motion.g
+                  animate={{ opacity: [0.5, 1, 0.5] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  <circle cx="25" cy="40" r="3" fill="#8B5CF6" />
+                  <circle cx="40" cy="40" r="3" fill="#8B5CF6" />
+                  <circle cx="55" cy="40" r="3" fill="#8B5CF6" />
+                </motion.g>
+              </svg>
+            </motion.div>
+          </div>
+        </motion.div>
+
+        {/* Step 3 Card */}
+        <motion.div
+          className="relative z-10"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+          viewport={{ once: true }}
+          whileHover={{ y: -5, boxShadow: "0 25px 50px -12px rgba(99, 102, 241, 0.15)" }}
+        >
+          <div className="bg-white rounded-2xl shadow-xl p-8 border border-indigo-50 h-full flex flex-col items-center text-center relative overflow-hidden">
+            {/* Number indicator */}
+            <motion.div 
+              className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-2xl mb-8 relative z-10"
+              whileHover={{ 
+                scale: 1.1,
+                boxShadow: "0 0 0 8px rgba(99, 102, 241, 0.1)"
+              }}
+            >
+              <motion.span
+                animate={{ scale: [1, 1.15, 1] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
+              >
+                3
+              </motion.span>
+            </motion.div>
+            
+            {/* Decorative element */}
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-indigo-50 rounded-full opacity-30" />
+
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">Permanent Protection</h3>
+            <p className="text-gray-600 mb-8">
+              Receive your ownership certificate with timestamped proof that's indisputable and permanent.
+            </p>
+
+            {/* Enhanced animated icon */}
+            <motion.div
+              className="mt-auto"
+              whileHover={{ scale: 1.1 }}
+              whileInView={{
+                scale: [1, 1.05, 1]
+              }}
+              transition={{ 
+                scale: { repeat: Infinity, duration: 2, ease: "easeInOut", repeatDelay: 0.5 },
+                hover: { duration: 0.2 }
+              }}
+              viewport={{ once: true }}
+            >
+              <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <motion.path 
+                  d="M25 35H55V55C55 56.1046 54.1046 57 53 57H27C25.8954 57 25 56.1046 25 55V35Z" 
+                  stroke="#8B5CF6" 
+                  strokeWidth="2"
+                  animate={{ fill: ["rgba(139, 92, 246, 0)", "rgba(139, 92, 246, 0.05)", "rgba(139, 92, 246, 0)"] }}
+                  transition={{ duration: 3, repeat: Infinity }}
+                />
+                <motion.path 
+                  d="M25 35V29C25 26.2386 27.2386 24 30 24H50C52.7614 24 55 26.2386 55 29V35" 
+                  stroke="#8B5CF6" 
+                  strokeWidth="2"
+                />
+                <motion.path 
+                  d="M33 44L37 48L47 38" 
+                  stroke="#8B5CF6" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                  animate={{ pathLength: [0, 1], pathOffset: [0.6, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 2 }}
+                />
+                <motion.circle 
+                  cx="40" 
+                  cy="40" 
+                  r="22" 
+                  stroke="#8B5CF6" 
+                  strokeOpacity="0.2"
+                  strokeWidth="1"
+                  animate={{ scale: [0.8, 1.2, 0.8], opacity: [0, 0.5, 0] }}
+                  transition={{ duration: 3, repeat: Infinity }}
+                />
+              </svg>
+            </motion.div>
+          </div>
+        </motion.div>
       </div>
+    </div>
+
+    {/* Action button */}
+    <motion.div 
+      className="mt-16 text-center"
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.8 }}
+      viewport={{ once: true }}
+    >
+      <motion.button
+        onClick={() => navigate('/register')}
+        className="px-8 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-medium text-lg flex items-center justify-center gap-2 shadow-lg shadow-purple-200/50 mx-auto"
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        Start Your Protection Journey
+        <FaArrowRight className="ml-2" />
+      </motion.button>
+    </motion.div>
+  </div>
+</div>
 
       {/* Visual Showcase Section */}
-      <div id="section-2" className="relative bg-gradient-to-b from-indigo-50/50 to-purple-50/50 py-24 overflow-hidden">
+      <div id="section-2" className="select-none relative bg-gradient-to-b from-indigo-50/50 to-purple-50/50 py-24 overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-20 bg-gradient-to-b from-indigo-50/50 to-transparent"></div>
 
         {/* Testimonials section */}
@@ -917,7 +1104,7 @@ function Landing() {
               >
                 <div className="relative">
                   <img
-                    src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1064&q=80"
+                    src={img}
                     alt="Digital artwork verification"
                     className="w-full h-auto"
                   />
@@ -1036,7 +1223,7 @@ function Landing() {
           />
         </div>
 
-        <div className="container mx-auto px-6 md:px-12 relative z-10">
+        <div className="container select-none mx-auto px-6 md:px-12 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}

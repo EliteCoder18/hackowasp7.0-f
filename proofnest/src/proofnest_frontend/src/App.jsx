@@ -1,5 +1,6 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router , Routes, Route } from 'react-router-dom';
+import {Navigate} from 'react-router-dom'
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './components/Login';
 import Register from './components/Register';
@@ -11,11 +12,13 @@ import Contact from './components/Contact';
 import Feedback from './components/Feedback';
 import NotFound from './components/NotFound';
 import Layout from './components/Layout';
+import ScrollToTop from './components/ScrollToTop';
 
 function App() {
   return (
+    <Router>
+      <ScrollToTop/>
     <Routes>
- 
       <Route path="/" element={<Layout />}>
         <Route index element={<Landing />} />
         <Route path="register" element={
@@ -36,6 +39,7 @@ function App() {
         <Route path="/login" element={<Login />} />
       </Route>
     </Routes>
+    </Router>
   );
 }
 
