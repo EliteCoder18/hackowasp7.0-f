@@ -15,7 +15,7 @@ export const Vortex = ({ children, className = "" }) => {
   }, []);
 
   return (
-    <div className={`relative min-h-screen overflow-hidden bg-gradient-to-b from-gray-900 to-black ${className}`}>
+    <div className={`relative min-h-screen overflow-hidden bg-gradient-to-b from-gray-900 to-black flex items-center justify-center ${className}`}>
       {/* Background elements */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Gradient bubbles */}
@@ -56,7 +56,7 @@ export const Vortex = ({ children, className = "" }) => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10">
+      <div className="relative z-10 w-full flex items-center justify-center">
         {children}
       </div>
     </div>

@@ -28,7 +28,15 @@ function Register() {
   const [loading, setLoading] = useState(true);
   const [isRotating, setIsRotating] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
-  
+
+  // Generate particles for background
+  const particles = [...Array(40)].map(() => ({
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    size: Math.random() * 3 + 1,
+    color: Math.random() > 0.6 ? "rgba(139, 92, 246, 0.4)" : "rgba(99, 102, 241, 0.3)"
+  }));
+
   // Keep all existing useEffects and handlers
   useEffect(() => {
     const handleResize = () => {
@@ -58,7 +66,7 @@ function Register() {
       }) : proofnest_backend;
 
       const result = await actor.get_all_files();
-      
+
       const filesArray = result.map(([hash, info]) => ({
         hash,
         name: info.name,
@@ -68,7 +76,7 @@ function Register() {
         ownerName: info.owner_name,
         user: info.user.toString()
       }));
-      
+
       setFiles(filesArray);
     } catch (err) {
       console.error('Error fetching files:', err);
@@ -133,7 +141,7 @@ function Register() {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
-    
+
     const droppedFile = e.dataTransfer.files[0];
     processFile(droppedFile);
   };
@@ -166,9 +174,9 @@ function Register() {
     try {
       setIsUploading(true);
       setMessage('Registering on blockchain...');
-      
+
       const fileHash = await calculateSHA256(file);
-      
+
       await registerProof(
         fileHash,
         fileName,
@@ -179,10 +187,10 @@ function Register() {
         ownerDob,
         file
       );
-      
+
       setHash(fileHash);
       setMessage(`File registered successfully!`);
-      
+
       fetchFiles();
     } catch (error) {
       console.error('Registration error:', error);
@@ -199,23 +207,23 @@ function Register() {
       })
       .catch(err => {
         console.error('Clipboard API failed, trying fallback:', err);
-        
+
         try {
           const textArea = document.createElement('textarea');
           textArea.value = hash;
-          
+
           textArea.style.position = 'fixed';
           textArea.style.opacity = 0;
           textArea.style.left = '-999999px';
           textArea.style.top = '-999999px';
-          
+
           document.body.appendChild(textArea);
           textArea.focus();
           textArea.select();
-          
+
           const successful = document.execCommand('copy');
           document.body.removeChild(textArea);
-          
+
           if (successful) {
             showCopyFeedback(name);
           } else {
@@ -230,12 +238,12 @@ function Register() {
 
   const showCopyFeedback = (name) => {
     setMessage(`Hash for ${name} copied to clipboard`);
-    
+
     const feedback = document.createElement('div');
     feedback.textContent = 'Copied!';
     feedback.className = 'fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded-md shadow-lg z-50';
     document.body.appendChild(feedback);
-    
+
     setTimeout(() => {
       if (document.body.contains(feedback)) {
         document.body.removeChild(feedback);
@@ -286,23 +294,23 @@ function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-purple-50 flex flex-col md:flex-row relative select-none">
-      {/* Decorative elements similar to landing page */}
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-purple-50/50 flex flex-col md:flex-row relative select-none">
+      {/* Decorative background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div 
+        <motion.div
           className="absolute w-[800px] h-[800px] rounded-full bg-indigo-100/30 blur-3xl"
           style={{ top: '20%', left: '-20%' }}
-          animate={{ 
+          animate={{
             scale: [1, 1.1, 1],
             x: [0, 20, 0],
             opacity: [0.2, 0.3, 0.2]
           }}
           transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
         />
-        <motion.div 
+        <motion.div
           className="absolute w-[600px] h-[600px] rounded-full bg-purple-100/20 blur-3xl"
           style={{ bottom: '-10%', right: '-10%' }}
-          animate={{ 
+          animate={{
             scale: [1, 1.2, 1],
             y: [0, -30, 0],
             opacity: [0.15, 0.25, 0.15]
@@ -311,18 +319,73 @@ function Register() {
         />
       </div>
 
-      {/* Connecting dots pattern */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none" 
-        style={{ 
-          backgroundImage: 'radial-gradient(circle, rgba(99, 102, 241, 0.4) 1px, transparent 1px)',
-          backgroundSize: '30px 30px'
-        }}>
+      {/* Background patterns */}
+      <div className="absolute inset-0 bg-creative-dots"></div>
+      <div className="absolute inset-0 bg-creative-lines"></div>
+      <div className="absolute inset-0 bg-watercolor opacity-50"></div>
+
+      {/* Constellation particles */}
+      <div className="absolute select-none inset-0 overflow-hidden pointer-events-none">
+        <svg className="absolute w-full h-full">
+          {particles.map((particle, index) => (
+            <motion.circle
+              key={`particle-${index}`}
+              cx={`${particle.x}%`}
+              cy={`${particle.y}%`}
+              r={particle.size}
+              fill={particle.color}
+              animate={{
+                opacity: [0.4, 1, 0.4],
+                r: [particle.size, particle.size + 1.5, particle.size],
+                y: [`${particle.y}%`, `${particle.y - 1}%`, `${particle.y}%`]
+              }}
+              transition={{
+                duration: 3 + Math.random() * 5,
+                repeat: Infinity,
+                delay: Math.random() * 2,
+                ease: "easeInOut"
+              }}
+            />
+          ))}
+
+          {/* Connecting lines between nearby particles */}
+          {particles.map((particle, idx) => {
+            return particles
+              .slice(idx + 1)
+              .filter(p => {
+                const distance = Math.sqrt(
+                  Math.pow(p.x - particle.x, 2) + Math.pow(p.y - particle.y, 2)
+                );
+                return distance < 20; // Only connect nearby particles
+              })
+              .map((p, lineIdx) => (
+                <motion.line
+                  key={`line-${idx}-${lineIdx}`}
+                  x1={`${particle.x}%`}
+                  y1={`${particle.y}%`}
+                  x2={`${p.x}%`}
+                  y2={`${p.y}%`}
+                  strokeWidth="0.5"
+                  stroke="rgba(139, 92, 246, 0.2)"
+                  animate={{
+                    opacity: [0.1, 0.3, 0.1],
+                    strokeWidth: ["0.5px", "1px", "0.5px"]
+                  }}
+                  transition={{
+                    duration: 4,
+                    repeat: Infinity,
+                    repeatType: "reverse"
+                  }}
+                />
+              ))
+          })}
+        </svg>
       </div>
-      
+
       {/* Mobile Sidebar Toggle */}
       <div className="md:hidden p-5 bg-white/80 backdrop-blur-sm text-gray-800 flex justify-between items-center border-b border-gray-200/50 sticky top-0 z-20">
         <h2 className="text-xl font-bold bg-gradient-to-r from-indigo-500 to-purple-600 text-transparent bg-clip-text">ProofNest</h2>
-        <button 
+        <button
           onClick={() => setShowSidebar(!showSidebar)}
           className="p-2 bg-gray-100 hover:bg-gray-200 rounded-md transition-all"
         >
@@ -333,7 +396,7 @@ function Register() {
           )}
         </button>
       </div>
-      
+
       {/* Sidebar - with improved structure */}
       <div className={`${showSidebar ? 'block' : 'hidden'} md:block w-full md:w-80 bg-white/90 backdrop-blur-md fixed md:sticky top-[64px] md:top-0 left-0 h-[calc(100vh-64px)] md:h-screen border-r border-gray-200/50 z-20 flex flex-col`}>
         {/* Sidebar header */}
@@ -354,7 +417,7 @@ function Register() {
           <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-500 to-purple-600 text-transparent bg-clip-text">ProofNest</h2>
           <p className="text-sm text-gray-500 mt-1">Blockchain Content Verification</p>
         </div>
-        
+
         {/* Scrollable content area with visible scrollbar */}
         <div
           className="flex-1 min-h-0 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-indigo-300 scrollbar-track-transparent"
@@ -419,8 +482,8 @@ function Register() {
             ) : (
               <div className="space-y-3">
                 {userFiles.map((file) => (
-                  <motion.div 
-                    key={file.hash} 
+                  <motion.div
+                    key={file.hash}
                     className="bg-white rounded-xl p-3 hover:bg-indigo-50 transition-all duration-300 cursor-pointer border border-gray-200 hover:border-indigo-200 hover:shadow-lg"
                     whileHover={{ scale: 1.02 }}
                     initial={{ opacity: 0, y: 20 }}
@@ -429,13 +492,13 @@ function Register() {
                   >
                     <div className="flex items-center">
                       {getFileIcon(file.contentType)}
-                      
+
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate text-gray-800">{file.name}</p>
                         <p className="text-xs text-gray-500">Registered: {formatDate(file.timestamp)}</p>
                       </div>
-                      
-                      <motion.button 
+
+                      <motion.button
                         onClick={(e) => {
                           e.stopPropagation();
                           copyHash(file.hash, file.name);
@@ -453,12 +516,12 @@ function Register() {
               </div>
             )}
           </div>
-          
+
           {/* Newsletter section - optional, you can remove if not needed */}
           <div className="mt-8 mb-20">
             <h3 className="text-md font-semibold text-gray-800 mb-3">Subscribe to our newsletter</h3>
             <div className="flex">
-              <input 
+              <input
                 type="email"
                 placeholder="Your email address"
                 className="flex-1 bg-gray-50 text-gray-800 rounded-l-lg p-3 border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition-all outline-none"
@@ -469,7 +532,7 @@ function Register() {
             </div>
           </div>
         </div>
-        
+
         {/* Logout button fixed at the bottom */}
         <div className="sticky bottom-0 left-0 w-full bg-white/90 border-t border-gray-200/50 p-5 z-30 flex-shrink-0">
           <motion.button
@@ -485,13 +548,13 @@ function Register() {
 
       {/* Main Content */}
       <div className="flex-1 p-5 md:p-10 overflow-y-auto relative z-10">
-        <motion.div 
+        <motion.div
           className="max-w-4xl mx-auto"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          <motion.div 
+          <motion.div
             className="mb-8"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -515,11 +578,11 @@ function Register() {
             <h2 className="text-3xl font-serif font-bold mb-2 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Register Content</h2>
             <p className="text-gray-600">Secure your digital assets on the blockchain with tamper-proof verification</p>
           </motion.div>
-          
+
           {/* Register Form Content */}
           <div className="space-y-6 md:space-y-8">
             {/* File upload area with drag and drop */}
-            <motion.div 
+            <motion.div
               className={`border-2 border-dashed rounded-xl p-6 md:p-10 text-center transition-all duration-300 bg-white/60 backdrop-blur-sm
                 ${isDragging ? 'border-indigo-400 bg-indigo-50 shadow-lg shadow-indigo-200/50' : 'border-gray-300 hover:border-indigo-300'} 
                 ${file ? 'bg-indigo-50/40' : ''}`}
@@ -539,12 +602,12 @@ function Register() {
                 onChange={handleFileChange}
                 className="hidden"
               />
-              
+
               {!file ? (
                 <div className="space-y-4 cursor-pointer">
-                  <motion.div 
+                  <motion.div
                     className="mx-auto w-20 h-20 flex items-center justify-center rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 text-indigo-500 border border-indigo-200 shadow-lg"
-                    animate={{ 
+                    animate={{
                       y: [0, -10, 0]
                     }}
                     transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
@@ -568,8 +631,8 @@ function Register() {
                     <div className="text-gray-800 font-semibold truncate text-lg">{file.name}</div>
                     <div className="text-gray-600 text-sm">{(file.size / 1024).toFixed(2)} KB • Ready to register</div>
                   </div>
-                  <motion.button 
-                    type="button" 
+                  <motion.button
+                    type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       setFile(null);
@@ -588,7 +651,7 @@ function Register() {
             {/* Form Sections */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* File Details */}
-              <motion.div 
+              <motion.div
                 className="bg-white/90 backdrop-blur-sm rounded-xl border border-gray-200 shadow-md overflow-hidden"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -603,7 +666,7 @@ function Register() {
                     <h3 className="text-lg font-semibold text-gray-800">File Details</h3>
                   </div>
                 </div>
-                
+
                 <div className="p-5 space-y-4">
                   <div>
                     <label className="block text-gray-700 mb-2 font-medium">File Name</label>
@@ -615,7 +678,7 @@ function Register() {
                       className="w-full bg-gray-50 text-gray-800 rounded-lg p-3 border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition-all outline-none"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-gray-700 mb-2 font-medium">Description</label>
                     <textarea
@@ -628,9 +691,9 @@ function Register() {
                   </div>
                 </div>
               </motion.div>
-              
+
               {/* Owner Details */}
-              <motion.div 
+              <motion.div
                 className="bg-white/90 backdrop-blur-sm rounded-xl border border-gray-200 shadow-md overflow-hidden"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -645,7 +708,7 @@ function Register() {
                     <h3 className="text-lg font-semibold text-gray-800">Owner Details</h3>
                   </div>
                 </div>
-                
+
                 <div className="p-5 space-y-4">
                   <div>
                     <label className="block text-gray-700 mb-2 font-medium">Owner Name</label>
@@ -658,7 +721,7 @@ function Register() {
                       required
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-gray-700 mb-2 font-medium">Owner Date of Birth</label>
                     <input
@@ -680,7 +743,7 @@ function Register() {
             </div>
 
             {/* Royalty Section */}
-            <motion.div 
+            <motion.div
               className="bg-white/90 backdrop-blur-sm rounded-xl border border-gray-200 shadow-md overflow-hidden"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -695,7 +758,7 @@ function Register() {
                   <h3 className="text-lg font-semibold text-gray-800">Royalty Options</h3>
                 </div>
               </div>
-              
+
               <div className="p-5">
                 <label className="flex items-center space-x-3 cursor-pointer">
                   <input
@@ -707,13 +770,13 @@ function Register() {
                   />
                   <span className="text-gray-800 font-medium">Enable royalty service for this file</span>
                 </label>
-                
+
                 <p className="mt-2 text-sm text-gray-600">
                   Enabling royalties allows you to monetize your content when others use it
                 </p>
-                
+
                 {hasRoyalty && (
-                  <motion.div 
+                  <motion.div
                     className="mt-5 space-y-4 bg-gradient-to-r from-purple-50 to-white rounded-xl border border-purple-200 p-5"
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
@@ -735,7 +798,7 @@ function Register() {
                           />
                         </div>
                       </div>
-                      
+
                       <div>
                         <label className="block text-gray-700 mb-2 font-medium">Contact Details <span className="text-red-500">*</span></label>
                         <input
@@ -748,7 +811,7 @@ function Register() {
                         />
                       </div>
                     </div>
-                    
+
                     <div className="bg-purple-50 border border-purple-100 rounded-lg p-4 mt-4">
                       <p className="text-sm flex items-start text-purple-700">
                         <FaRegLightbulb className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
@@ -765,8 +828,8 @@ function Register() {
               onClick={handleRegister}
               disabled={isUploading || !file}
               className={`w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-4 rounded-xl font-medium text-lg shadow-xl overflow-hidden relative group
-                ${(isUploading || !file) 
-                  ? 'opacity-50 cursor-not-allowed' 
+                ${(isUploading || !file)
+                  ? 'opacity-50 cursor-not-allowed'
                   : 'hover:shadow-2xl hover:shadow-indigo-200'}`}
               whileHover={{ scale: isUploading || !file ? 1 : 1.02 }}
               whileTap={{ scale: isUploading || !file ? 1 : 0.98 }}
@@ -777,7 +840,7 @@ function Register() {
               <motion.div
                 className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
               />
-              
+
               {isUploading ? (
                 <div className="flex items-center justify-center relative z-10">
                   <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -803,7 +866,7 @@ function Register() {
 
             {/* Messages and Results */}
             {message && (
-              <motion.div 
+              <motion.div
                 className="p-5 bg-white rounded-xl border border-gray-200 shadow-xl"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -811,9 +874,9 @@ function Register() {
                 <div className="text-gray-700">{message}</div>
               </motion.div>
             )}
-            
+
             {hash && (
-              <motion.div 
+              <motion.div
                 className="bg-gradient-to-r from-green-50 to-indigo-50 rounded-xl border border-green-200 shadow-xl overflow-hidden"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -829,12 +892,12 @@ function Register() {
                     <h3 className="text-lg font-bold text-green-700">Registration Successful</h3>
                   </div>
                 </div>
-                
+
                 <div className="p-5 space-y-3">
                   <p className="text-sm text-gray-700 mb-2">
                     Your file has been successfully registered on the blockchain. The unique content hash is:
                   </p>
-                  
+
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
                     <div className="font-mono text-gray-800 break-all pr-2 text-sm mb-3 sm:mb-0">
                       {hash}
@@ -849,7 +912,7 @@ function Register() {
                       Copy Hash
                     </motion.button>
                   </div>
-                  
+
                   <p className="text-xs text-gray-500 mt-3">
                     Store this hash safely. It serves as proof of your content registration and can be used to verify ownership.
                   </p>
@@ -857,7 +920,7 @@ function Register() {
               </motion.div>
             )}
           </div>
-          
+
           {/* Footer */}
           <div className="text-center text-gray-500 text-sm mt-10">
             © {new Date().getFullYear()} ProofNest - Blockchain Content Verification

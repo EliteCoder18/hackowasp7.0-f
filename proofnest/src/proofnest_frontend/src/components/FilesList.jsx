@@ -4,10 +4,10 @@ import { proofnest_backend } from '../../../declarations/proofnest_backend';
 import { createActor } from '../../../declarations/proofnest_backend';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
-import { 
-  FaFileAlt, FaDownload, FaCopy, FaUser, FaInfoCircle, 
+import {
+  FaFileAlt, FaDownload, FaCopy, FaUser, FaInfoCircle,
   FaUpload, FaSort, FaSearch, FaFilter, FaListUl, FaTh,
-  FaFingerprint, FaCheck, FaImage, FaFilePdf, FaFileWord, 
+  FaFingerprint, FaCheck, FaImage, FaFilePdf, FaFileWord,
   FaFileExcel, FaFileVideo, FaLock, FaArrowRight, FaTimes
 } from 'react-icons/fa';
 
@@ -21,11 +21,11 @@ function FilesList() {
   const [copiedHashes, setCopiedHashes] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'grid'
-  
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [filesPerPage] = useState(10);
-  
+
   // DOB verification modal state
   const [showDobModal, setShowDobModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -52,7 +52,7 @@ function FilesList() {
       }) : proofnest_backend;
 
       const result = await actor.get_all_files();
-      
+
       // Transform the result into an array of files with properties
       const filesArray = result.map(([hash, info]) => ({
         hash,
@@ -67,7 +67,7 @@ function FilesList() {
         contactDetails: info.contact_details,
         user: info.user.toString()
       }));
-      
+
       setFiles(filesArray);
     } catch (err) {
       console.error('Error fetching files:', err);
@@ -88,10 +88,10 @@ function FilesList() {
   // Process download after DOB verification
   const handleDownload = async () => {
     if (!selectedFile) return;
-    
+
     setVerifying(true);
     setDobError('');
-    
+
     try {
       const actor = identity ? createActor(process.env.CANISTER_ID_PROOFNEST_BACKEND, {
         agentOptions: {
@@ -102,7 +102,7 @@ function FilesList() {
       // Get file info first (for metadata and DOB verification)
       let fileInfo = await actor.get_hash_info(selectedFile.hash);
       if (Array.isArray(fileInfo)) fileInfo = fileInfo[0];
-      
+
       if (!fileInfo) {
         setDobError("File not found on the blockchain.");
         return;
@@ -120,26 +120,26 @@ function FilesList() {
       const chunks = [];
       let offset = 0;
       let totalSize = 0;
-      
+
       console.log("Starting chunked download...");
-      
+
       // Loop to download all chunks
       while (true) {
         const chunk = await actor.get_file_chunk(selectedFile.hash, offset, CHUNK_SIZE);
         console.log(`Downloaded chunk: offset=${offset}, size=${chunk.length}`);
-        
+
         if (chunk.length === 0) break; // No more chunks
-        
+
         chunks.push(new Uint8Array(chunk));
         offset += chunk.length;
         totalSize += chunk.length;
-        
+
         // If we got less than the chunk size, we're done
         if (chunk.length < CHUNK_SIZE) break;
       }
 
       console.log(`Download complete: ${chunks.length} chunks, total size ${totalSize} bytes`);
-      
+
       if (chunks.length === 0 || totalSize === 0) {
         setDobError("File content not available.");
         return;
@@ -148,7 +148,7 @@ function FilesList() {
       // Combine chunks into a single Uint8Array
       const fileContent = new Uint8Array(totalSize);
       let position = 0;
-      
+
       for (const chunk of chunks) {
         fileContent.set(chunk, position);
         position += chunk.length;
@@ -157,14 +157,14 @@ function FilesList() {
       // Create the download
       const blob = new Blob([fileContent], { type: fileInfo.content_type || 'application/octet-stream' });
       const url = URL.createObjectURL(blob);
-      
+
       // Create a download link and click it
       const a = document.createElement('a');
       a.href = url;
       a.download = fileInfo.name || 'downloaded-file';
       document.body.appendChild(a);
       a.click();
-      
+
       setTimeout(() => {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
@@ -180,8 +180,8 @@ function FilesList() {
   };
 
   // Filter files based on search
-  const filteredFiles = files.filter(file => 
-    file.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  const filteredFiles = files.filter(file =>
+    file.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (file.ownerName && file.ownerName.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (file.description && file.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
@@ -224,13 +224,13 @@ function FilesList() {
   // Format date for display
   const formatDate = (timestamp) => {
     if (!timestamp) return 'Unknown';
-    
+
     let timestampMs = timestamp;
     if (timestamp > 1000000000000000) {
       // Convert from nanoseconds to milliseconds if needed
       timestampMs = Number(timestamp) / 1000000;
     }
-    
+
     const date = new Date(timestampMs);
     return date.toLocaleString(undefined, {
       year: 'numeric',
@@ -244,28 +244,28 @@ function FilesList() {
   // Get file type icon based on file extension
   const getFileTypeIcon = (fileName) => {
     if (!fileName) return <FaFileAlt className="h-5 w-5 text-gray-600" />;
-    
+
     const extension = fileName.split('.').pop()?.toLowerCase();
-    
-    switch(extension) {
-      case 'pdf': 
+
+    switch (extension) {
+      case 'pdf':
         return <FaFilePdf className="h-5 w-5 text-red-600" />;
       case 'docx':
-      case 'doc': 
+      case 'doc':
         return <FaFileWord className="h-5 w-5 text-blue-600" />;
       case 'xlsx':
-      case 'xls': 
+      case 'xls':
         return <FaFileExcel className="h-5 w-5 text-emerald-600" />;
       case 'jpg':
       case 'jpeg':
       case 'png':
-      case 'gif': 
+      case 'gif':
         return <FaImage className="h-5 w-5 text-purple-600" />;
       case 'mp4':
       case 'mov':
-      case 'avi': 
+      case 'avi':
         return <FaFileVideo className="h-5 w-5 text-orange-600" />;
-      default: 
+      default:
         return <FaFileAlt className="h-5 w-5 text-gray-600" />;
     }
   };
@@ -279,25 +279,25 @@ function FilesList() {
       })
       .catch(err => {
         console.error('Clipboard API failed, trying fallback:', err);
-        
+
         // Fallback method
         try {
           const textArea = document.createElement('textarea');
           textArea.value = text;
-          
+
           // Make the textarea invisible
           textArea.style.position = 'fixed';
           textArea.style.opacity = 0;
           textArea.style.left = '-999999px';
           textArea.style.top = '-999999px';
-          
+
           document.body.appendChild(textArea);
           textArea.focus();
           textArea.select();
-          
+
           const successful = document.execCommand('copy');
           document.body.removeChild(textArea);
-          
+
           if (!successful) {
             console.error('execCommand copy failed');
           }
@@ -308,23 +308,23 @@ function FilesList() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-purple-50 pt-16 px-4 pb-10 relative overflow-hidden select-none">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-purple-50 pt-16 px-4 pb-10 relative overflow-hidden select-none flex flex-col items-center">
       {/* Decorative elements similar to landing page */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div 
+        <motion.div
           className="absolute w-[800px] h-[800px] rounded-full bg-indigo-100/30 blur-3xl"
           style={{ top: '20%', left: '-20%' }}
-          animate={{ 
+          animate={{
             scale: [1, 1.1, 1],
             x: [0, 20, 0],
             opacity: [0.2, 0.3, 0.2]
           }}
           transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
         />
-        <motion.div 
+        <motion.div
           className="absolute w-[600px] h-[600px] rounded-full bg-purple-100/20 blur-3xl"
           style={{ bottom: '-10%', right: '-10%' }}
-          animate={{ 
+          animate={{
             scale: [1, 1.2, 1],
             y: [0, -30, 0],
             opacity: [0.15, 0.25, 0.15]
@@ -334,17 +334,18 @@ function FilesList() {
       </div>
 
       {/* Connecting dots pattern */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none" 
-        style={{ 
+      <div className="absolute inset-0 opacity-10 pointer-events-none"
+        style={{
           backgroundImage: 'radial-gradient(circle, rgba(99, 102, 241, 0.4) 1px, transparent 1px)',
           backgroundSize: '30px 30px'
         }}>
       </div>
-      
-      <div className="max-w-7xl mx-auto relative z-10">
+
+      {/* Content container with centered alignment */}
+      <div className="max-w-7xl mx-auto relative z-10 w-full flex flex-col items-center">
         {/* Header with animation */}
-        <motion.div 
-          className="mb-10 text-center"
+        <motion.div
+          className="mb-10 text-center w-full"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
@@ -365,7 +366,7 @@ function FilesList() {
             </div>
           </motion.div>
 
-          <motion.h1 
+          <motion.h1
             className="text-4xl md:text-5xl font-serif font-bold mb-3 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -373,7 +374,7 @@ function FilesList() {
           >
             Blockchain Verified Files
           </motion.h1>
-          <motion.p 
+          <motion.p
             className="text-gray-700 max-w-3xl mx-auto text-lg"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -382,10 +383,10 @@ function FilesList() {
             Browse, download, and manage all registered content on our secure blockchain network
           </motion.p>
         </motion.div>
-      
-        {/* Main content area */}
-        <motion.div 
-          className="bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl border border-gray-200/50 overflow-hidden mb-10"
+
+        {/* Main content area with full width for proper centering of table elements */}
+        <motion.div
+          className="bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl border border-gray-200/50 overflow-hidden mb-10 w-full"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
@@ -421,13 +422,13 @@ function FilesList() {
                 </button>
               </div>
             </div>
-            
+
             {/* Right controls: sort */}
             <div className="flex gap-3">
               <div className="relative group">
                 <button
                   className="bg-white text-gray-600 px-4 py-2 rounded-lg flex items-center gap-2 border border-gray-200 hover:border-indigo-300 hover:bg-gray-50"
-                  onClick={() => {}}
+                  onClick={() => { }}
                 >
                   <FaSort className="text-indigo-600" />
                   <span>Sort By: {sortBy.charAt(0).toUpperCase() + sortBy.slice(1)}</span>
@@ -455,7 +456,7 @@ function FilesList() {
               </Link>
             </div>
           </div>
-          
+
           {/* Content area */}
           {loading ? (
             <div className="flex justify-center py-20">
@@ -523,8 +524,8 @@ function FilesList() {
                     </thead>
                     <tbody className="divide-y divide-gray-200 bg-white">
                       {currentFiles.map((file) => (
-                        <motion.tr 
-                          key={file.hash} 
+                        <motion.tr
+                          key={file.hash}
                           className="hover:bg-indigo-50 transition group"
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
@@ -606,8 +607,8 @@ function FilesList() {
                 // Grid view
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
                   {currentFiles.map((file, index) => (
-                    <motion.div 
-                      key={file.hash} 
+                    <motion.div
+                      key={file.hash}
                       className="bg-white rounded-xl overflow-hidden border border-gray-200 hover:border-indigo-300 hover:shadow-lg transition-all transform hover:-translate-y-1 group"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -622,7 +623,7 @@ function FilesList() {
                           <p className="text-gray-500 text-xs">{formatDate(file.timestamp)}</p>
                         </div>
                       </div>
-                      
+
                       <div className="p-4">
                         <div className="mb-3">
                           {file.ownerName ? (
@@ -636,12 +637,12 @@ function FilesList() {
                             <span className="text-gray-400 text-sm">Owner Unknown</span>
                           )}
                         </div>
-                        
+
                         <div className="text-gray-600 text-sm mb-3 h-10 overflow-hidden">
-                          {file.description ? file.description : 
+                          {file.description ? file.description :
                             <span className="text-gray-400 italic">No description</span>}
                         </div>
-                        
+
                         <div className="flex items-center mb-3">
                           <span className="text-gray-600 font-mono text-xs bg-gray-100 p-1 rounded">
                             {file.hash.substring(0, 8)}...
@@ -671,7 +672,7 @@ function FilesList() {
                             <span className="ml-2 text-green-600 text-xs bg-green-100 py-0.5 px-2 rounded animate-pulse">Copied!</span>
                           )}
                         </div>
-                        
+
                         <motion.button
                           onClick={() => initiateDownload(file)}
                           className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-green-500 text-white p-2 rounded-lg text-sm font-medium shadow hover:shadow-emerald-200/50 transition"
@@ -685,7 +686,7 @@ function FilesList() {
                   ))}
                 </div>
               )}
-              
+
               {/* Pagination */}
               {sortedFiles.length > filesPerPage && (
                 <div className="p-4 bg-gray-50 border-t border-gray-200 flex justify-center">
@@ -693,17 +694,16 @@ function FilesList() {
                     <motion.button
                       onClick={() => paginate(currentPage > 1 ? currentPage - 1 : 1)}
                       disabled={currentPage === 1}
-                      className={`px-3 py-1.5 rounded-md ${
-                        currentPage === 1
+                      className={`px-3 py-1.5 rounded-md ${currentPage === 1
                           ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                           : 'bg-indigo-500 text-white hover:bg-indigo-600 shadow-sm'
-                      }`}
+                        }`}
                       whileHover={currentPage !== 1 ? { scale: 1.05 } : {}}
                       whileTap={currentPage !== 1 ? { scale: 0.95 } : {}}
                     >
                       Previous
                     </motion.button>
-                    
+
                     {/* Page numbers */}
                     <div className="flex items-center">
                       {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -718,16 +718,15 @@ function FilesList() {
                         } else {
                           pageNum = currentPage - 2 + i;
                         }
-                        
+
                         return (
                           <motion.button
                             key={i}
                             onClick={() => paginate(pageNum)}
-                            className={`w-8 h-8 mx-1 flex items-center justify-center rounded-md ${
-                              currentPage === pageNum
+                            className={`w-8 h-8 mx-1 flex items-center justify-center rounded-md ${currentPage === pageNum
                                 ? 'bg-indigo-500 text-white shadow-sm'
                                 : 'bg-white text-gray-600 hover:bg-indigo-100 border border-gray-200'
-                            }`}
+                              }`}
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                           >
@@ -736,15 +735,14 @@ function FilesList() {
                         );
                       })}
                     </div>
-                    
+
                     <motion.button
                       onClick={() => paginate(currentPage < totalPages ? currentPage + 1 : totalPages)}
                       disabled={currentPage === totalPages}
-                      className={`px-3 py-1.5 rounded-md ${
-                        currentPage === totalPages
+                      className={`px-3 py-1.5 rounded-md ${currentPage === totalPages
                           ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                           : 'bg-indigo-500 text-white hover:bg-indigo-600 shadow-sm'
-                      }`}
+                        }`}
                       whileHover={currentPage !== totalPages ? { scale: 1.05 } : {}}
                       whileTap={currentPage !== totalPages ? { scale: 0.95 } : {}}
                     >
@@ -756,9 +754,9 @@ function FilesList() {
             </>
           )}
         </motion.div>
-        
-        <motion.div 
-          className="flex justify-center"
+
+        <motion.div
+          className="flex justify-center w-full"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
@@ -776,21 +774,21 @@ function FilesList() {
             Refresh Files
           </motion.button>
         </motion.div>
-        
-        <div className="text-center text-gray-500 text-xs mt-8">
+
+        <div className="text-center text-gray-500 text-xs mt-8 w-full">
           &copy; {new Date().getFullYear()} ProofNest - Blockchain Content Verification
         </div>
       </div>
 
       {/* DOB Verification Modal */}
       {showDobModal && selectedFile && (
-        <motion.div 
+        <motion.div
           className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
-          <motion.div 
+          <motion.div
             className="bg-white rounded-2xl p-8 w-96 max-w-full shadow-2xl border border-gray-200 relative"
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -806,18 +804,18 @@ function FilesList() {
                 <FaTimes />
               </motion.button>
             </div>
-            
+
             <div className="flex items-center mb-6">
               <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full p-3 mr-4 shadow-lg text-white flex items-center justify-center">
                 <FaLock />
               </div>
               <h2 className="text-2xl font-bold text-gray-800">Verification Required</h2>
             </div>
-            
+
             <p className="text-gray-600 mb-6">
               This file requires identity verification before download. Please enter <span className="font-semibold text-indigo-600">{selectedFile.ownerName || "the owner"}</span>'s date of birth:
             </p>
-            
+
             <div className="mb-6">
               <label className="block text-gray-700 mb-2 font-medium">Date of Birth</label>
               <input
@@ -827,9 +825,9 @@ function FilesList() {
                 className="w-full bg-gray-50 text-gray-800 rounded-lg p-3 border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition-all outline-none"
               />
             </div>
-            
+
             {dobError && (
-              <motion.div 
+              <motion.div
                 className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-r-md text-red-800 flex items-start"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -840,7 +838,7 @@ function FilesList() {
                 {dobError}
               </motion.div>
             )}
-            
+
             <div className="flex justify-end gap-3 mt-8">
               <motion.button
                 onClick={() => setShowDobModal(false)}
@@ -853,11 +851,10 @@ function FilesList() {
               <motion.button
                 onClick={handleDownload}
                 disabled={!dobInput || verifying}
-                className={`px-5 py-2 flex items-center gap-2 rounded-lg transition shadow-lg ${
-                  !dobInput || verifying
+                className={`px-5 py-2 flex items-center gap-2 rounded-lg transition shadow-lg ${!dobInput || verifying
                     ? 'bg-emerald-300 text-white cursor-not-allowed'
                     : 'bg-gradient-to-r from-emerald-500 to-green-500 text-white hover:shadow-emerald-200/70'
-                }`}
+                  }`}
                 whileHover={!dobInput || verifying ? {} : { scale: 1.05 }}
                 whileTap={!dobInput || verifying ? {} : { scale: 0.95 }}
               >
