@@ -43,25 +43,22 @@ function ResponsiveAppBar() {
 
   return (
     <AppBar
-      position="sticky"
+      position="fixed"
       sx={{
-        bgcolor: 'black',
-        top: 0,
+        bgcolor: 'rgba(0, 0, 0, 0.15)',
+        backdropFilter: 'blur(8px)',
+        boxShadow: 'none',
+        backgroundImage: 'none',
         zIndex: 1100,
-        '&::after': {
-          content: '""',
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: '0.9px',
+        '& .MuiToolbar-root': {
+          padding: '0.5rem 1rem',
         }
       }}
     >
       <Container maxWidth="xl">
         <Toolbar disableGutters>
           {/* Logo for desktop */}
-          <AdbIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1, color: 'white' }} />
+          <AdbIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1, color: '#6366f1' }} />
           <Typography
             variant="h6"
             noWrap
@@ -73,8 +70,9 @@ function ResponsiveAppBar() {
               fontFamily: 'monospace',
               fontWeight: 700,
               letterSpacing: '.3rem',
-              color: 'white',
+              color: 'black',
               textDecoration: 'none',
+              textShadow: '0px 0px 5px rgba(0, 0, 0, 0.2)',
             }}
           >
             PROOFNEST
@@ -88,7 +86,7 @@ function ResponsiveAppBar() {
               aria-controls="menu-appbar"
               aria-haspopup="true"
               onClick={handleOpenNavMenu}
-              sx={{ color: 'white' }}
+              sx={{ color: '#6366f1' }}
             >
               <MenuIcon />
             </IconButton>
@@ -109,30 +107,33 @@ function ResponsiveAppBar() {
               sx={{
                 display: { xs: 'block', md: 'none' },
                 '& .MuiPaper-root': {
-                  backgroundColor: '#111',
-                  color: 'white'
+                  backgroundColor: 'rgba(30, 30, 40, 0.9)',
+                  backdropFilter: 'blur(10px)',
+                  color: '#f8fafc',
+                  borderRadius: '8px',
+                  mt: 1
                 }
               }}
             >
               {pages.map((page) => (
                 <MenuItem key={page} onClick={() => handleNavClick(page)}>
-                  <Typography sx={{ textAlign: 'center', color: 'white' }}>{page}</Typography>
+                  <Typography sx={{ textAlign: 'center', color: 'black' }}>{page}</Typography>
                 </MenuItem>
               ))}
               {isAuthenticated ? (
                 <MenuItem onClick={() => { logout(); handleCloseNavMenu(); }}>
-                  <Typography sx={{ textAlign: 'center', color: 'white' }}>Logout</Typography>
+                  <Typography sx={{ textAlign: 'center', color: 'black' }}>Logout</Typography>
                 </MenuItem>
               ) : (
                 <MenuItem onClick={() => { navigate('/login'); handleCloseNavMenu(); }}>
-                  <Typography sx={{ textAlign: 'center', color: 'white' }}>Login</Typography>
+                  <Typography sx={{ textAlign: 'center', color: 'black' }}>Login</Typography>
                 </MenuItem>
               )}
             </Menu>
           </Box>
 
           {/* Logo for mobile */}
-          <AdbIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1, color: 'white' }} />
+          <AdbIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1, color: '#6366f1' }} />
           <Typography
             variant="h5"
             noWrap
@@ -145,8 +146,9 @@ function ResponsiveAppBar() {
               fontFamily: 'monospace',
               fontWeight: 700,
               letterSpacing: '.3rem',
-              color: 'white',
+              color: 'black',
               textDecoration: 'none',
+              textShadow: '0px 0px 5px rgba(0, 0, 0, 0.2)',
             }}
           >
             PROOFNEST
@@ -161,11 +163,17 @@ function ResponsiveAppBar() {
                 onClick={() => handleNavClick(page)}
                 sx={{
                   my: 2.4,
-                  mx: 3,
-                  color: 'white',
+                  mx: 1.5,
+                  color: 'black',
                   display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  textTransform: 'none',
+                  textShadow: '0px 0px 5px rgba(0, 0, 0, 0.3)',
+                  backgroundImage: 'none',
                   '&:hover': {
-                    background: 'linear-gradient(to right, rgba(74, 222, 128, 0.1), rgba(59, 130, 246, 0.1), rgba(168, 85, 247, 0.1))',
+                    background: 'rgba(99, 102, 241, 0.15)',
+                    borderRadius: '8px',
                   }
                 }}
               >
@@ -177,11 +185,16 @@ function ResponsiveAppBar() {
                 onClick={logout}
                 sx={{
                   my: 2.4,
-                  mx: 3,
-                  color: 'white',
+                  mx: 1.5,
+                  color: 'black',
                   display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  textTransform: 'none',
+                  textShadow: '0px 0px 5px rgba(0, 0, 0, 0.3)',
                   '&:hover': {
-                    background: 'linear-gradient(to right, rgba(74, 222, 128, 0.1), rgba(59, 130, 246, 0.1), rgba(168, 85, 247, 0.1))',
+                    background: 'rgba(239, 68, 68, 0.15)',
+                    borderRadius: '8px',
                   }
                 }}
               >
@@ -191,12 +204,20 @@ function ResponsiveAppBar() {
               <Button
                 onClick={() => navigate('/login')}
                 sx={{
-                  my: 2.4,
-                  mx: 3,
+                  my: 2,
+                  px: 3,
+                  py: 0.5,
                   color: 'white',
                   display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  background: 'linear-gradient(to right, #6366f1, #8b5cf6)',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 6px -1px rgba(99, 102, 241, 0.2)',
                   '&:hover': {
-                    background: 'linear-gradient(to right, rgba(74, 222, 128, 0.1), rgba(59, 130, 246, 0.1), rgba(168, 85, 247, 0.1))',
+                    boxShadow: '0 10px 15px -3px rgba(99, 102, 241, 0.3)',
+                    transform: 'translateY(-1px)',
                   }
                 }}
               >

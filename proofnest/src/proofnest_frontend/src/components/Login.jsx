@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
-// If you have these components, import them. Otherwise, remove or replace.
+// Import our custom components
 import { Vortex } from '../ui/vortex';
-import { Meteors } from '../ui/meteors';
+import { MovingGradient } from '../ui/MovingGradient';
 
 function Login() {
   const [error, setError] = useState(null);
@@ -54,9 +54,14 @@ function Login() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
         >
-          {/* Meteors Animation Inside the Box */}
+          {/* Animated background instead of Meteors */}
           <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-            <Meteors number={15} className="bg-gradient-to-r from-gray-700 to-black" />
+            <MovingGradient
+              baseColor="bg-gray-700"
+              highlightColor="bg-indigo-500"
+              direction="ttb"
+              duration={12}
+            />
           </div>
 
           <div className="relative z-10 text-center mb-8">
