@@ -3,5 +3,41 @@
 @tailwind utilities;
 
 body {
-  @apply bg-slate-900 text-white;
+  @apply bg-transparent text-white;
+  margin: 0;
+  padding: 0;
+}
+
+/* Add padding to compensate for the fixed navbar */
+main {
+  padding-top: 64px;
+  /* Adjust based on your navbar height */
+}
+
+/* Enhanced background styling */
+.bg-mesh {
+  background-image:
+    linear-gradient(rgba(99, 102, 241, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99, 102, 241, 0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Smooth scrolling for the whole page */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Improved focus styles for accessibility */
+*:focus-visible {
+  outline: 2px solid rgba(99, 102, 241, 0.6);
+  outline-offset: 2px;
+}
+
+/* Better blending for background effects */
+.mix-blend-overlay {
+  mix-blend-mode: overlay;
+}
+
+.mix-blend-soft {
+  mix-blend-mode: soft-light;
 }
