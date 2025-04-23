@@ -95,6 +95,5 @@ Once all components are running, you can access the ProofNest application in you
 
 ## Project Links
 
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:8000
-- Internet Computer Canister: http://localhost:4943
+- Frontend: http://localhost:5173](https://xktfs-fyaaa-aaaac-aq3ua-cai.icp0.io/
+- Backend : https://a4gq6-oaaaa-aaaab-qaa4q-cai.raw.icp0.io/?id=wh5b4-kqaaa-aaaac-aq3tq-cai
