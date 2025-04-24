@@ -1,7 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { FaCalendarAlt, FaUser, FaTags, FaClock, FaArrowRight, FaBook } from 'react-icons/fa';
-
+import img4 from '../assets/photo-1639322537504-6427a16b0a28.jpeg'
+import img5 from '../assets/photo-1568952433726-3896e3881c65.jpeg'
+import img6 from '../assets/img66.jpeg'
+import img7 from '../assets/img77.jpeg'
 const Blog = () => {
     // Sample blog posts data - in a real app, this would come from an API
     const blogPosts = [
@@ -13,7 +16,7 @@ const Blog = () => {
             date: "May 12, 2023",
             readTime: "5 min read",
             category: "Technology",
-            image: "https://images.unsplash.com/photo-1639322537504-6427a16b0a28?q=80&w=1000&auto=format&fit=crop"
+            image: img4 // Fix: removed the object wrapping
         },
         {
             id: 2,
@@ -23,7 +26,7 @@ const Blog = () => {
             date: "April 28, 2023",
             readTime: "8 min read",
             category: "Legal",
-            image: "https://images.unsplash.com/photo-1568952433726-3896e3881c65?q=80&w=1000&auto=format&fit=crop"
+            image: img5 // Fix: removed the object wrapping
         },
         {
             id: 3,
@@ -33,7 +36,7 @@ const Blog = () => {
             date: "June 5, 2023",
             readTime: "6 min read",
             category: "Digital Art",
-            image: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=1000&auto=format&fit=crop"
+            image: img6 // Fix: removed the object wrapping
         },
         {
             id: 4,
@@ -43,7 +46,7 @@ const Blog = () => {
             date: "May 30, 2023",
             readTime: "7 min read",
             category: "Business",
-            image: "https://images.unsplash.com/photo-1470058869958-2a77ade41c02?q=80&w=1000&auto=format&fit=crop"
+            image: img7 // Fix: removed the object wrapping
         }
     ];
 
