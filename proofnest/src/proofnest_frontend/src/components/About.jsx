@@ -405,47 +405,7 @@ export default function AboutUs() {
           </motion.div>
         </motion.div>
 
-        <motion.div
-          className="mb-20"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-        >
-          <motion.div
-            className="bg-white/90 backdrop-blur-md p-8 md:p-12 rounded-2xl max-w-5xl mx-auto border border-white/50 shadow-xl"
-          >
-            <h2 className="text-3xl font-serif font-bold text-center text-gray-900 mb-4">Meet Our Team</h2>
-            <p className="text-center text-gray-600 max-w-2xl mx-auto mb-12">
-              Driven by passion and expertise, our diverse team is committed to revolutionizing content protection.
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {teamMembers.map((member, index) => (
-                <motion.div
-                  key={index}
-                  className="bg-white/90 backdrop-blur-sm rounded-xl overflow-hidden shadow-lg border border-gray-100 group"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 + (index * 0.1) }}
-                  whileHover={{ y: -8 }}
-                >
-                  <div className="h-48 overflow-hidden">
-                    <img
-                      src={member.image}
-                      alt={member.name}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                    />
-                  </div>
-                  <div className="p-5">
-                    <h3 className="text-xl font-bold text-gray-900">{member.name}</h3>
-                    <p className="text-indigo-600 font-medium text-sm mb-2">{member.role}</p>
-                    <p className="text-gray-600 text-sm">{member.bio}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        </motion.div>
+        
 
         <div className="text-center text-gray-500 text-sm mt-8">
           &copy; {new Date().getFullYear()} ProofNest - Blockchain Content Verification

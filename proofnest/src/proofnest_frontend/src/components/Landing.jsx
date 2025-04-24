@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, useScroll, useTransform, useSpring, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Link } from 'react-router-dom';
 import {
   FaShieldAlt,
   FaPalette,
@@ -211,56 +210,13 @@ function Landing() {
 
   const scrollToNext = () => {
     if (mainRef.current) {
-      const nextSection = Math.min(activeSection + 1, 3);
-      setActiveSection(nextSection);
-      const sectionElement = document.getElementById(`section-${nextSection}`);
-      if (sectionElement) {
-        sectionElement.scrollIntoView({ behavior: 'smooth' });
+      // Scroll to the "How ProofNest Works" section
+      const targetSection = document.getElementById("how-proofnest-works");
+      if (targetSection) {
+        targetSection.scrollIntoView({ behavior: 'smooth' });
       }
     }
   };
-
-  // Parallax effect for background elements
-  const y1 = useTransform(scrollYProgress, [0, 1], [0, -100]);
-  const y2 = useTransform(scrollYProgress, [0, 1], [0, -150]);
-  const y3 = useTransform(scrollYProgress, [0, 1], [0, -200]);
-
-  // Floating shapes
-  const floatingShapes = [
-    { top: '15%', left: '10%', size: '100px', duration: 8, delay: 0, color: 'bg-purple-500/10' },
-    { top: '60%', left: '15%', size: '120px', duration: 10, delay: 1, color: 'bg-indigo-500/10' },
-    { top: '20%', left: '70%', size: '150px', duration: 12, delay: 2, color: 'bg-blue-400/10' },
-    { top: '70%', left: '80%', size: '80px', duration: 9, delay: 1.5, color: 'bg-pink-400/10' },
-    { top: '40%', left: '50%', size: '200px', duration: 15, delay: 0.5, color: 'bg-indigo-300/10' },
-  ];
-
-  // Enhanced background animations
-  const backgroundVariants = {
-    animate: {
-      backgroundPosition: ['0% 0%', '100% 100%'],
-      transition: {
-        repeat: Infinity,
-        repeatType: 'reverse',
-        duration: 30,
-        ease: 'linear'
-      }
-    }
-  };
-
-  // Dynamic polygon shapes for background
-  const polygons = [
-    { points: "0,0 0,100 100,0", fill: "rgba(99, 102, 241, 0.04)" },
-    { points: "100,100 0,100 100,0", fill: "rgba(139, 92, 246, 0.05)" },
-    { points: "50,0 100,50 50,100 0,50", fill: "rgba(219, 39, 119, 0.03)" }
-  ];
-
-  // Particle properties for the background constellation
-  const particles = [...Array(40)].map(() => ({
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    size: Math.random() * 3 + 1,
-    color: Math.random() > 0.6 ? "rgba(139, 92, 246, 0.6)" : "rgba(99, 102, 241, 0.5)"
-  }));
 
   return (
     <div className="relative" ref={mainRef}>
@@ -279,144 +235,17 @@ function Landing() {
         >
           <motion.div
             className="absolute inset-0"
-            variants={backgroundVariants}
-            animate="animate"
+            animate={{
+              backgroundPosition: ['0% 0%', '100% 100%'],
+              transition: {
+                repeat: Infinity,
+                repeatType: 'reverse',
+                duration: 30,
+                ease: 'linear'
+              }
+            }}
           />
         </div>
-
-        {/* Animated patterns layer */}
-        <div className="absolute inset-0 opacity-30">
-          {polygons.map((polygon, index) => (
-            <svg
-              key={`polygon-${index}`}
-              className="absolute"
-              width="100%"
-              height="100%"
-              style={{
-                transform: `rotate(${index * 30}deg) scale(${1 + index * 0.3})`,
-                opacity: 0.3 - index * 0.05
-              }}
-              preserveAspectRatio="none"
-            >
-              <motion.polygon
-                points={polygon.points}
-                fill={polygon.fill}
-                animate={{
-                  opacity: [0.3, 0.6, 0.3],
-                  scale: [1, 1.05, 1]
-                }}
-                transition={{
-                  duration: 10 + index * 3,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-              />
-            </svg>
-          ))}
-        </div>
-
-        {/* Constellation particles */}
-        <div className="absolute select-none inset-0 overflow-hidden">
-          <svg className="absolute w-full h-full">
-            {particles.map((particle, index) => (
-              <motion.circle
-                key={index}
-                cx={`${particle.x}%`}
-                cy={`${particle.y}%`}
-                r={particle.size}
-                fill={particle.color}
-                animate={{
-                  opacity: [0.4, 1, 0.4],
-                  r: [particle.size, particle.size + 1, particle.size]
-                }}
-                transition={{
-                  duration: 3 + Math.random() * 5,
-                  repeat: Infinity,
-                  delay: Math.random() * 2
-                }}
-              />
-            ))}
-
-            {/* Connecting lines between nearby particles */}
-            {particles.map((particle, idx) => {
-              return particles
-                .slice(idx + 1)
-                .filter(p => {
-                  const distance = Math.sqrt(
-                    Math.pow(p.x - particle.x, 2) + Math.pow(p.y - particle.y, 2)
-                  );
-                  return distance < 20; // Only connect nearby particles
-                })
-                .map((p, lineIdx) => (
-                  <motion.line
-                    key={`line-${idx}-${lineIdx}`}
-                    x1={`${particle.x}%`}
-                    y1={`${particle.y}%`}
-                    x2={`${p.x}%`}
-                    y2={`${p.y}%`}
-                    strokeWidth="0.5"
-                    stroke="rgba(139, 92, 246, 0.2)"
-                    animate={{
-                      opacity: [0.1, 0.3, 0.1],
-                      strokeWidth: ["0.5px", "1px", "0.5px"]
-                    }}
-                    transition={{
-                      duration: 4,
-                      repeat: Infinity,
-                      repeatType: "reverse"
-                    }}
-                  />
-                ))
-            })}
-          </svg>
-        </div>
-
-        {/* Animated floating shapes in background - keeping existing layer but with enhancements */}
-        <div className="absolute inset-0 select-none overflow-hidden">
-          {floatingShapes.map((shape, index) => (
-            <motion.div
-              key={index}
-              className={`absolute rounded-full ${shape.color} blur-3xl backdrop-filter backdrop-blur-3xl`}
-              style={{
-                top: shape.top,
-                left: shape.left,
-                width: shape.size,
-                height: shape.size,
-                zIndex: 0,
-                y: index % 2 === 0 ? y1 : y2,
-                mixBlendMode: "soft-light"
-              }}
-              animate={{
-                y: [0, -30, 0],
-                x: [0, 20, 0],
-                scale: [1, 1.1, 1],
-                opacity: [0.4, 0.7, 0.4]
-              }}
-              transition={{
-                duration: shape.duration,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: shape.delay,
-              }}
-            />
-          ))}
-        </div>
-
-        {/* Animated prism light effect */}
-        <motion.div
-          className="absolute top-0 -right-1/4 w-1/2 h-full opacity-20 rotate-12"
-          animate={{
-            opacity: [0.1, 0.3, 0.1],
-            rotate: [12, 15, 12]
-          }}
-          transition={{
-            duration: 15,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        >
-          <div className="w-full h-full bg-gradient-to-b from-purple-300 via-transparent to-indigo-300"></div>
-        </motion.div>
 
         {/* Content */}
         <motion.div
@@ -511,44 +340,25 @@ function Landing() {
             className="flex flex-col sm:flex-row justify-center gap-4 mt-10"
           >
             <motion.button
-              onClick={handleNavigate}
+              onClick={scrollToNext}
               className="group px-8 py-4 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-medium text-lg flex items-center justify-center gap-2 shadow-lg shadow-purple-200/50 relative overflow-hidden"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <span className="relative z-10">Start Protecting My Work</span>
+              <span className="relative z-10">Scroll Down to see how ProofNest works</span>
               <motion.div
                 className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
               />
               <motion.div
                 className="relative z-10"
-                animate={{ x: [0, 5, 0] }}
+                animate={{ y: [0, 5, 0] }}
                 transition={{ repeat: Infinity, repeatType: "mirror", duration: 1 }}
               >
-                <FaArrowRight />
+                <FaChevronDown />
               </motion.div>
             </motion.button>
-
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Link
-                to="/verify"
-                className="px-8 py-4 rounded-xl bg-white text-indigo-700 border border-indigo-100 hover:border-indigo-300 font-medium text-lg flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all duration-300 relative group overflow-hidden"
-              >
-                <span className="relative z-10">Verify Content</span>
-                <motion.div
-                  className="absolute inset-0 bg-indigo-50 scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-300"
-                />
-              </Link>
-            </motion.div>
           </motion.div>
         </motion.div>
-
-        {/* Scroll Down Indicator */}
-      
-        
       </div>
 
       {/* Features Section */}
@@ -635,348 +445,46 @@ function Landing() {
       </div>
 
       {/* How It Works Section */}
-      <div id="section-3" className="bg-gradient-to-b from-white to-indigo-50/50 py-24 relative overflow-hidden">
-  {/* Animated background elements */}
-  <div className="absolute inset-0 overflow-hidden">
-    <motion.div 
-      className="absolute w-[800px] h-[800px] rounded-full bg-indigo-100/30 blur-3xl"
-      style={{ top: '20%', left: '-20%' }}
-      animate={{ 
-        scale: [1, 1.1, 1],
-        x: [0, 20, 0],
-        opacity: [0.2, 0.3, 0.2]
-      }}
-      transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-    />
-    <motion.div 
-      className="absolute w-[600px] h-[600px] rounded-full bg-purple-100/20 blur-3xl"
-      style={{ bottom: '-10%', right: '-10%' }}
-      animate={{ 
-        scale: [1, 1.2, 1],
-        y: [0, -30, 0],
-        opacity: [0.15, 0.25, 0.15]
-      }}
-      transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-    />
-  </div>
+      <div id="how-proofnest-works" className="bg-gradient-to-b from-white to-indigo-50/50 py-24 relative overflow-hidden">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <motion.div
+            className="absolute w-[800px] h-[800px] rounded-full bg-indigo-100/30 blur-3xl"
+            style={{ top: '20%', left: '-20%' }}
+            animate={{
+              scale: [1, 1.1, 1],
+              x: [0, 20, 0],
+              opacity: [0.2, 0.3, 0.2]
+            }}
+            transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div
+            className="absolute w-[600px] h-[600px] rounded-full bg-purple-100/20 blur-3xl"
+            style={{ bottom: '-10%', right: '-10%' }}
+            animate={{
+              scale: [1, 1.2, 1],
+              y: [0, -30, 0],
+              opacity: [0.15, 0.25, 0.15]
+            }}
+            transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          />
+        </div>
 
-  {/* Connecting dots pattern */}
-  <div className="absolute inset-0 opacity-10" 
-    style={{ 
-      backgroundImage: 'radial-gradient(circle, rgba(99, 102, 241, 0.4) 1px, transparent 1px)',
-      backgroundSize: '30px 30px'
-    }}>
-  </div>
+        {/* Connecting dots pattern */}
+        <div className="absolute inset-0 opacity-10"
+          style={{
+            backgroundImage: 'radial-gradient(circle, rgba(99, 102, 241, 0.4) 1px, transparent 1px)',
+            backgroundSize: '30px 30px'
+          }}>
+        </div>
 
-  <div className="container select-none mx-auto px-6 md:px-12 relative z-10">
-    <motion.div
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      transition={{ duration: 1 }}
-      viewport={{ once: true }}
-      className="max-w-xl mx-auto text-center mb-20"
-    >
-      <motion.span
-        className="inline-block px-4 py-1 bg-purple-50 text-purple-700 rounded-full text-sm font-medium mb-3"
-        initial={{ opacity: 0, y: -20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        viewport={{ once: true }}
-      >
-        Simple Process
-      </motion.span>
-      <motion.h2
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.3 }}
-        viewport={{ once: true }}
-        className="text-4xl md:text-5xl font-serif font-bold mb-6"
-      >
-       <span className='bg-black bg-clip-text text-transparent'>How</span>  <span className="bg-gradient-to-r from-pink-500 to bg-orange-400 bg-clip-text text-transparent">ProofNest</span> <span className='bg-black bg-clip-text text-transparent'>Works</span>
-      </motion.h2>
-    </motion.div>
-
-    {/* Improved process cards with connecting line */}
-    <div className="relative">
-      {/* Horizontal connecting line */}
-      <motion.div 
-        className="hidden md:block absolute top-[100px] left-[15%] right-[15%] h-1 bg-gradient-to-r from-indigo-100 via-purple-200 to-indigo-100 z-0"
-        initial={{ scaleX: 0, opacity: 0 }}
-        whileInView={{ scaleX: 1, opacity: 1 }}
-        transition={{ duration: 1, delay: 0.5 }}
-        viewport={{ once: true }}
-      />
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-        {/* Step 1 Card */}
-        <motion.div
-          className="relative z-10"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          viewport={{ once: true }}
-          whileHover={{ y: -5, boxShadow: "0 25px 50px -12px rgba(99, 102, 241, 0.15)" }}
-        >
-          <div className="bg-white rounded-2xl shadow-xl p-8 border border-indigo-50 h-full flex flex-col items-center text-center relative overflow-hidden">
-            {/* Number indicator */}
-            <motion.div 
-              className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-2xl mb-8 relative z-10"
-              whileHover={{ 
-                scale: 1.1,
-                boxShadow: "0 0 0 8px rgba(99, 102, 241, 0.1)"
-              }}
-            >
-              <motion.span
-                animate={{ scale: [1, 1.15, 1] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              >
-                1
-              </motion.span>
-            </motion.div>
-
-            {/* Decorative element */}
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-indigo-50 rounded-full opacity-30" />
-            
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">Upload Your Creation</h3>
-            <p className="text-gray-600 mb-8">
-              Simply upload your digital artwork, writing, music, or any creative asset to our secure platform.
-            </p>
-
-            {/* Enhanced animated icon */}
-            <motion.div
-              className="mt-auto"
-              whileHover={{ scale: 1.1, y: -5 }}
-              whileInView={{
-                y: [0, -8, 0],
-              }}
-              transition={{ 
-                y: { repeat: Infinity, duration: 3, ease: "easeInOut", repeatDelay: 1 },
-                scale: { duration: 0.2 }
-              }}
-              viewport={{ once: true }}
-            >
-              <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <motion.rect 
-                  x="15" y="15" width="50" height="50" rx="8" 
-                  stroke="#8B5CF6" 
-                  strokeWidth="2" 
-                  strokeDasharray="4 4"
-                  animate={{ strokeDashoffset: [0, 20] }}
-                  transition={{ repeat: Infinity, duration: 8, ease: "linear" }}
-                />
-                <motion.path 
-                  d="M40 30V50M40 50L33 43M40 50L47 43" 
-                  stroke="#8B5CF6" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                  animate={{ y: [0, -4, 0], opacity: [0.7, 1, 0.7] }}
-                  transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                />
-              </svg>
-            </motion.div>
-          </div>
-        </motion.div>
-
-        {/* Step 2 Card */}
-        <motion.div
-          className="relative z-10"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          viewport={{ once: true }}
-          whileHover={{ y: -5, boxShadow: "0 25px 50px -12px rgba(99, 102, 241, 0.15)" }}
-        >
-          <div className="bg-white rounded-2xl shadow-xl p-8 border border-indigo-50 h-full flex flex-col items-center text-center relative overflow-hidden">
-            {/* Number indicator */}
-            <motion.div 
-              className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-2xl mb-8 relative z-10"
-              whileHover={{ 
-                scale: 1.1,
-                boxShadow: "0 0 0 8px rgba(99, 102, 241, 0.1)"
-              }}
-            >
-              <motion.span
-                animate={{ scale: [1, 1.15, 1] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
-              >
-                2
-              </motion.span>
-            </motion.div>
-
-            {/* Decorative element */}
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-indigo-50 rounded-full opacity-30" />
-
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">Blockchain Verification</h3>
-            <p className="text-gray-600 mb-8">
-              We generate a unique cryptographic signature and securely record it on the blockchain.
-            </p>
-
-            {/* Enhanced animated icon */}
-            <motion.div
-              className="mt-auto"
-              whileHover={{ scale: 1.1, rotate: 5 }}
-              whileInView={{
-                rotate: [0, 2, -2, 0]
-              }}
-              transition={{ 
-                rotate: { repeat: Infinity, duration: 5, ease: "easeInOut" },
-                scale: { duration: 0.2 }
-              }}
-              viewport={{ once: true }}
-            >
-              <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <motion.rect 
-                  x="15" y="20" width="50" height="40" rx="4" 
-                  stroke="#8B5CF6" strokeWidth="2" 
-                  fill="transparent"
-                  animate={{ stroke: ["#8B5CF6", "#6366F1", "#8B5CF6"] }}
-                  transition={{ duration: 3, repeat: Infinity }}
-                />
-                <motion.path 
-                  d="M15 32H65" 
-                  stroke="#8B5CF6" strokeWidth="2"
-                  animate={{ strokeDasharray: [0, 50], strokeDashoffset: [0, -100] }}
-                  transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
-                />
-                <motion.path 
-                  d="M15 48H65" 
-                  stroke="#8B5CF6" strokeWidth="2" 
-                  animate={{ strokeDasharray: [0, 50], strokeDashoffset: [0, 100] }}
-                  transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                />
-                <motion.g
-                  animate={{ opacity: [0.5, 1, 0.5] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  <circle cx="25" cy="40" r="3" fill="#8B5CF6" />
-                  <circle cx="40" cy="40" r="3" fill="#8B5CF6" />
-                  <circle cx="55" cy="40" r="3" fill="#8B5CF6" />
-                </motion.g>
-              </svg>
-            </motion.div>
-          </div>
-        </motion.div>
-
-        {/* Step 3 Card */}
-        <motion.div
-          className="relative z-10"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-          viewport={{ once: true }}
-          whileHover={{ y: -5, boxShadow: "0 25px 50px -12px rgba(99, 102, 241, 0.15)" }}
-        >
-          <div className="bg-white rounded-2xl shadow-xl p-8 border border-indigo-50 h-full flex flex-col items-center text-center relative overflow-hidden">
-            {/* Number indicator */}
-            <motion.div 
-              className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-2xl mb-8 relative z-10"
-              whileHover={{ 
-                scale: 1.1,
-                boxShadow: "0 0 0 8px rgba(99, 102, 241, 0.1)"
-              }}
-            >
-              <motion.span
-                animate={{ scale: [1, 1.15, 1] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
-              >
-                3
-              </motion.span>
-            </motion.div>
-            
-            {/* Decorative element */}
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-indigo-50 rounded-full opacity-30" />
-
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">Permanent Protection</h3>
-            <p className="text-gray-600 mb-8">
-              Receive your ownership certificate with timestamped proof that's indisputable and permanent.
-            </p>
-
-            {/* Enhanced animated icon */}
-            <motion.div
-              className="mt-auto"
-              whileHover={{ scale: 1.1 }}
-              whileInView={{
-                scale: [1, 1.05, 1]
-              }}
-              transition={{ 
-                scale: { repeat: Infinity, duration: 2, ease: "easeInOut", repeatDelay: 0.5 },
-                hover: { duration: 0.2 }
-              }}
-              viewport={{ once: true }}
-            >
-              <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <motion.path 
-                  d="M25 35H55V55C55 56.1046 54.1046 57 53 57H27C25.8954 57 25 56.1046 25 55V35Z" 
-                  stroke="#8B5CF6" 
-                  strokeWidth="2"
-                  animate={{ fill: ["rgba(139, 92, 246, 0)", "rgba(139, 92, 246, 0.05)", "rgba(139, 92, 246, 0)"] }}
-                  transition={{ duration: 3, repeat: Infinity }}
-                />
-                <motion.path 
-                  d="M25 35V29C25 26.2386 27.2386 24 30 24H50C52.7614 24 55 26.2386 55 29V35" 
-                  stroke="#8B5CF6" 
-                  strokeWidth="2"
-                />
-                <motion.path 
-                  d="M33 44L37 48L47 38" 
-                  stroke="#8B5CF6" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                  animate={{ pathLength: [0, 1], pathOffset: [0.6, 0] }}
-                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 2 }}
-                />
-                <motion.circle 
-                  cx="40" 
-                  cy="40" 
-                  r="22" 
-                  stroke="#8B5CF6" 
-                  strokeOpacity="0.2"
-                  strokeWidth="1"
-                  animate={{ scale: [0.8, 1.2, 0.8], opacity: [0, 0.5, 0] }}
-                  transition={{ duration: 3, repeat: Infinity }}
-                />
-              </svg>
-            </motion.div>
-          </div>
-        </motion.div>
-      </div>
-    </div>
-
-    {/* Action button */}
-    <motion.div 
-      className="mt-16 text-center"
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.8 }}
-      viewport={{ once: true }}
-    >
-      <motion.button
-        onClick={() => navigate('/register')}
-        className="px-8 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-medium text-lg flex items-center justify-center gap-2 shadow-lg shadow-purple-200/50 mx-auto"
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-      >
-        Start Your Protection Journey
-        <FaArrowRight className="ml-2" />
-      </motion.button>
-    </motion.div>
-  </div>
-</div>
-
-      {/* Visual Showcase Section */}
-      <div id="section-2" className="select-none relative bg-gradient-to-b from-indigo-50/50 to-purple-50/50 py-24 overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-20 bg-gradient-to-b from-indigo-50/50 to-transparent"></div>
-
-        {/* Testimonials section */}
-        <div className="container mx-auto px-6 md:px-12 relative z-10 mb-32">
+        <div className="container select-none mx-auto px-6 md:px-12 relative z-10">
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             transition={{ duration: 1 }}
             viewport={{ once: true }}
-            className="max-w-xl mx-auto text-center mb-16"
+            className="max-w-xl mx-auto text-center mb-20"
           >
             <motion.span
               className="inline-block px-4 py-1 bg-purple-50 text-purple-700 rounded-full text-sm font-medium mb-3"
@@ -985,26 +493,295 @@ function Landing() {
               transition={{ delay: 0.2 }}
               viewport={{ once: true }}
             >
-              Creator Stories
+              Simple Process
             </motion.span>
             <motion.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.3 }}
               viewport={{ once: true }}
-              className="text-4xl md:text-5xl font-serif font-bold mb-6 text-gray-900"
+              className="text-4xl md:text-5xl font-serif font-bold mb-6"
             >
-              Trusted by <GradientText>Creators</GradientText> Worldwide
+              <span className='bg-black bg-clip-text text-transparent'>How</span>  <span className="bg-gradient-to-r from-pink-500 to bg-orange-400 bg-clip-text text-transparent">ProofNest</span> <span className='bg-black bg-clip-text text-transparent'>Works</span>
             </motion.h2>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            
-                        {testimonials.map((testimonial, index) => (
-              <Testimonial key={index} {...testimonial} index={index} />
-            ))}
+          {/* Improved process cards with connecting line */}
+          <div className="relative">
+            {/* Horizontal connecting line */}
+            <motion.div
+              className="hidden md:block absolute top-[100px] left-[15%] right-[15%] h-1 bg-gradient-to-r from-indigo-100 via-purple-200 to-indigo-100 z-0"
+              initial={{ scaleX: 0, opacity: 0 }}
+              whileInView={{ scaleX: 1, opacity: 1 }}
+              transition={{ duration: 1, delay: 0.5 }}
+              viewport={{ once: true }}
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+              {/* Step 1 Card */}
+              <motion.div
+                className="relative z-10"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.1 }}
+                viewport={{ once: true }}
+                whileHover={{ y: -5, boxShadow: "0 25px 50px -12px rgba(99, 102, 241, 0.15)" }}
+              >
+                <div className="bg-white rounded-2xl shadow-xl p-8 border border-indigo-50 h-full flex flex-col items-center text-center relative overflow-hidden">
+                  {/* Number indicator */}
+                  <motion.div
+                    className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-2xl mb-8 relative z-10"
+                    whileHover={{
+                      scale: 1.1,
+                      boxShadow: "0 0 0 8px rgba(99, 102, 241, 0.1)"
+                    }}
+                  >
+                    <motion.span
+                      animate={{ scale: [1, 1.15, 1] }}
+                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                      1
+                    </motion.span>
+                  </motion.div>
+
+                  {/* Decorative element */}
+                  <div className="absolute -top-10 -right-10 w-40 h-40 bg-indigo-50 rounded-full opacity-30" />
+
+                  <h3 className="text-xl font-semibold text-gray-900 mb-4">Upload Your Creation</h3>
+                  <p className="text-gray-600 mb-8">
+                    Simply upload your digital artwork, writing, music, or any creative asset to our secure platform.
+                  </p>
+
+                  {/* Enhanced animated icon */}
+                  <motion.div
+                    className="mt-auto"
+                    whileHover={{ scale: 1.1, y: -5 }}
+                    whileInView={{
+                      y: [0, -8, 0],
+                    }}
+                    transition={{
+                      y: { repeat: Infinity, duration: 3, ease: "easeInOut", repeatDelay: 1 },
+                      scale: { duration: 0.2 }
+                    }}
+                    viewport={{ once: true }}
+                  >
+                    <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <motion.rect
+                        x="15" y="15" width="50" height="50" rx="8"
+                        stroke="#8B5CF6"
+                        strokeWidth="2"
+                        strokeDasharray="4 4"
+                        animate={{ strokeDashoffset: [0, 20] }}
+                        transition={{ repeat: Infinity, duration: 8, ease: "linear" }}
+                      />
+                      <motion.path
+                        d="M40 30V50M40 50L33 43M40 50L47 43"
+                        stroke="#8B5CF6"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        animate={{ y: [0, -4, 0], opacity: [0.7, 1, 0.7] }}
+                        transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                      />
+                    </svg>
+                  </motion.div>
+                </div>
+              </motion.div>
+
+              {/* Step 2 Card */}
+              <motion.div
+                className="relative z-10"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                viewport={{ once: true }}
+                whileHover={{ y: -5, boxShadow: "0 25px 50px -12px rgba(99, 102, 241, 0.15)" }}
+              >
+                <div className="bg-white rounded-2xl shadow-xl p-8 border border-indigo-50 h-full flex flex-col items-center text-center relative overflow-hidden">
+                  {/* Number indicator */}
+                  <motion.div
+                    className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-2xl mb-8 relative z-10"
+                    whileHover={{
+                      scale: 1.1,
+                      boxShadow: "0 0 0 8px rgba(99, 102, 241, 0.1)"
+                    }}
+                  >
+                    <motion.span
+                      animate={{ scale: [1, 1.15, 1] }}
+                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+                    >
+                      2
+                    </motion.span>
+                  </motion.div>
+
+                  {/* Decorative element */}
+                  <div className="absolute -top-10 -right-10 w-40 h-40 bg-indigo-50 rounded-full opacity-30" />
+
+                  <h3 className="text-xl font-semibold text-gray-900 mb-4">Blockchain Verification</h3>
+                  <p className="text-gray-600 mb-8">
+                    We generate a unique cryptographic signature and securely record it on the blockchain.
+                  </p>
+
+                  {/* Enhanced animated icon */}
+                  <motion.div
+                    className="mt-auto"
+                    whileHover={{ scale: 1.1, rotate: 5 }}
+                    whileInView={{
+                      rotate: [0, 2, -2, 0]
+                    }}
+                    transition={{
+                      rotate: { repeat: Infinity, duration: 5, ease: "easeInOut" },
+                      scale: { duration: 0.2 }
+                    }}
+                    viewport={{ once: true }}
+                  >
+                    <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <motion.rect
+                        x="15" y="20" width="50" height="40" rx="4"
+                        stroke="#8B5CF6" strokeWidth="2"
+                        fill="transparent"
+                        animate={{ stroke: ["#8B5CF6", "#6366F1", "#8B5CF6"] }}
+                        transition={{ duration: 3, repeat: Infinity }}
+                      />
+                      <motion.path
+                        d="M15 32H65"
+                        stroke="#8B5CF6" strokeWidth="2"
+                        animate={{ strokeDasharray: [0, 50], strokeDashoffset: [0, -100] }}
+                        transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+                      />
+                      <motion.path
+                        d="M15 48H65"
+                        stroke="#8B5CF6" strokeWidth="2"
+                        animate={{ strokeDasharray: [0, 50], strokeDashoffset: [0, 100] }}
+                        transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                      />
+                      <motion.g
+                        animate={{ opacity: [0.5, 1, 0.5] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                      >
+                        <circle cx="25" cy="40" r="3" fill="#8B5CF6" />
+                        <circle cx="40" cy="40" r="3" fill="#8B5CF6" />
+                        <circle cx="55" cy="40" r="3" fill="#8B5CF6" />
+                      </motion.g>
+                    </svg>
+                  </motion.div>
+                </div>
+              </motion.div>
+
+              {/* Step 3 Card */}
+              <motion.div
+                className="relative z-10"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.5 }}
+                viewport={{ once: true }}
+                whileHover={{ y: -5, boxShadow: "0 25px 50px -12px rgba(99, 102, 241, 0.15)" }}
+              >
+                <div className="bg-white rounded-2xl shadow-xl p-8 border border-indigo-50 h-full flex flex-col items-center text-center relative overflow-hidden">
+                  {/* Number indicator */}
+                  <motion.div
+                    className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-2xl mb-8 relative z-10"
+                    whileHover={{
+                      scale: 1.1,
+                      boxShadow: "0 0 0 8px rgba(99, 102, 241, 0.1)"
+                    }}
+                  >
+                    <motion.span
+                      animate={{ scale: [1, 1.15, 1] }}
+                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
+                    >
+                      3
+                    </motion.span>
+                  </motion.div>
+
+                  {/* Decorative element */}
+                  <div className="absolute -top-10 -right-10 w-40 h-40 bg-indigo-50 rounded-full opacity-30" />
+
+                  <h3 className="text-xl font-semibold text-gray-900 mb-4">Permanent Protection</h3>
+                  <p className="text-gray-600 mb-8">
+                    Receive your ownership certificate with timestamped proof that's indisputable and permanent.
+                  </p>
+
+                  {/* Enhanced animated icon */}
+                  <motion.div
+                    className="mt-auto"
+                    whileHover={{ scale: 1.1 }}
+                    whileInView={{
+                      scale: [1, 1.05, 1]
+                    }}
+                    transition={{
+                      scale: { repeat: Infinity, duration: 2, ease: "easeInOut", repeatDelay: 0.5 },
+                      hover: { duration: 0.2 }
+                    }}
+                    viewport={{ once: true }}
+                  >
+                    <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <motion.path
+                        d="M25 35H55V55C55 56.1046 54.1046 57 53 57H27C25.8954 57 25 56.1046 25 55V35Z"
+                        stroke="#8B5CF6"
+                        strokeWidth="2"
+                        animate={{ fill: ["rgba(139, 92, 246, 0)", "rgba(139, 92, 246, 0.05)", "rgba(139, 92, 246, 0)"] }}
+                        transition={{ duration: 3, repeat: Infinity }}
+                      />
+                      <motion.path
+                        d="M25 35V29C25 26.2386 27.2386 24 30 24H50C52.7614 24 55 26.2386 55 29V35"
+                        stroke="#8B5CF6"
+                        strokeWidth="2"
+                      />
+                      <motion.path
+                        d="M33 44L37 48L47 38"
+                        stroke="#8B5CF6"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        animate={{ pathLength: [0, 1], pathOffset: [0.6, 0] }}
+                        transition={{ duration: 2, repeat: Infinity, repeatDelay: 2 }}
+                      />
+                      <motion.circle
+                        cx="40"
+                        cy="40"
+                        r="22"
+                        stroke="#8B5CF6"
+                        strokeOpacity="0.2"
+                        strokeWidth="1"
+                        animate={{ scale: [0.8, 1.2, 0.8], opacity: [0, 0.5, 0] }}
+                        transition={{ duration: 3, repeat: Infinity }}
+                      />
+                    </svg>
+                  </motion.div>
+                </div>
+              </motion.div>
+            </div>
           </div>
+
+          {/* Action button */}
+          <motion.div
+            className="mt-16 text-center"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 }}
+            viewport={{ once: true }}
+          >
+            <motion.button
+              onClick={() => navigate('/register')}
+              className="px-8 py-4 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-medium flex items-center justify-center gap-2 shadow-lg shadow-purple-200 relative overflow-hidden group"
+              whileHover={{ scale: 1.05, boxShadow: "0 20px 25px -5px rgba(139, 92, 246, 0.2)" }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <span className="relative z-10">Start Protecting My Work</span>
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              />
+              <FaArrowRight className="relative z-10" />
+            </motion.button>
+          </motion.div>
         </div>
+      </div>
+
+      {/* Visual Showcase Section */}
+      <div id="section-2" className="select-none relative bg-gradient-to-b from-indigo-50/50 to-purple-50/50 py-24 overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-20 bg-gradient-to-b from-indigo-50/50 to-transparent"></div>
+
 
         <div className="container mx-auto px-6 md:px-12 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -1188,7 +965,7 @@ function Landing() {
       </div>
 
       {/* Call to Action Section */}
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 py-20 relative overflow-hidden">
+      <div id="call-to-action" className="bg-gradient-to-r from-indigo-600 to-purple-600 py-20 relative overflow-hidden">
         <div className="absolute inset-0">
           <PulsingGradient
             baseColor="bg-indigo-400"
