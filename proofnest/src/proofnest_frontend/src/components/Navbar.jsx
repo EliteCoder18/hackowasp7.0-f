@@ -14,7 +14,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { FaFingerprint, FaLock, FaArrowRight } from 'react-icons/fa';
 
-const pages = ["Home", "Verify", "Register", "Files", "About", "Contact"];
+const pages = ["Home", "Verify", "Register", "Files", "About", "Blog","Contact"];
 
 function ResponsiveAppBar() {
   const [anchorElNav, setAnchorElNav] = useState(null);
