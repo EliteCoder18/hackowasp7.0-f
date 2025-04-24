@@ -88,9 +88,9 @@ function ResponsiveAppBar() {
             style={{ display: 'flex', alignItems: 'center' }}
           >
             <div className="relative mr-2">
-              <motion.div 
+              <motion.div
                 className="absolute inset-0 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full opacity-30 blur-md"
-                animate={{ 
+                animate={{
                   scale: [1, 1.2, 1],
                   opacity: [0.3, 0.5, 0.3]
                 }}
@@ -100,7 +100,7 @@ function ResponsiveAppBar() {
                 <FaFingerprint className="text-white text-xl" />
               </div>
             </div>
-          
+
           </motion.div>
 
           {/* Mobile menu */}
@@ -111,7 +111,7 @@ function ResponsiveAppBar() {
               aria-controls="menu-appbar"
               aria-haspopup="true"
               onClick={handleOpenNavMenu}
-              sx={{ 
+              sx={{
                 color: '#6366f1',
                 '&:hover': {
                   background: 'rgba(99, 102, 241, 0.1)',
@@ -125,12 +125,12 @@ function ResponsiveAppBar() {
               anchorEl={anchorElNav}
               anchorOrigin={{
                 vertical: 'bottom',
-                horizontal: 'left',
+                horizontal: 'center',
               }}
               keepMounted
               transformOrigin={{
                 vertical: 'top',
-                horizontal: 'left',
+                horizontal: 'center',
               }}
               open={Boolean(anchorElNav)}
               onClose={handleCloseNavMenu}
@@ -144,12 +144,14 @@ function ResponsiveAppBar() {
                   border: '1px solid rgba(231, 233, 255, 0.7)',
                   mt: 1.5,
                   overflow: 'hidden',
+                  left: '50%',
+                  transform: 'translateX(-50%)'
                 }
               }}
             >
               {pages.map((page, index) => (
-                <MenuItem 
-                  key={page} 
+                <MenuItem
+                  key={page}
                   onClick={() => handleNavClick(page)}
                   sx={{
                     transition: 'all 0.2s ease',
@@ -163,8 +165,8 @@ function ResponsiveAppBar() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
                   >
-                    <Typography sx={{ 
-                      textAlign: 'center', 
+                    <Typography sx={{
+                      textAlign: 'center',
                       color: isActive(page) ? '#6366f1' : 'black',
                       fontWeight: isActive(page) ? 600 : 400
                     }}>
@@ -174,7 +176,7 @@ function ResponsiveAppBar() {
                 </MenuItem>
               ))}
               {isAuthenticated ? (
-                <MenuItem 
+                <MenuItem
                   onClick={() => { logout(); handleCloseNavMenu(); }}
                   sx={{
                     '&:hover': {
@@ -185,7 +187,7 @@ function ResponsiveAppBar() {
                   <Typography sx={{ textAlign: 'center', color: '#ef4444' }}>Logout</Typography>
                 </MenuItem>
               ) : (
-                <MenuItem 
+                <MenuItem
                   onClick={() => { navigate('/login'); handleCloseNavMenu(); }}
                   sx={{
                     background: 'linear-gradient(to right, #6366f1, #8b5cf6)',
@@ -210,7 +212,7 @@ function ResponsiveAppBar() {
             style={{ display: { xs: 'flex', md: 'none' }, alignItems: 'center', flexGrow: 1 }}
           >
             <div className="flex items-center">
-            
+
               <Typography
                 variant="h5"
                 noWrap
@@ -329,7 +331,7 @@ function ResponsiveAppBar() {
                     }
                   }}
                 >
-                  Login <FaArrowRight style={{fontSize: '0.75rem', marginLeft: '4px'}}/>
+                  Login <FaArrowRight style={{ fontSize: '0.75rem', marginLeft: '4px' }} />
                 </Button>
               </motion.div>
             )}

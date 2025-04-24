@@ -185,7 +185,6 @@ function Landing() {
   const [currentStat, setCurrentStat] = useState(0);
   const stats = [
     { value: "99.9%", label: "Verification accuracy" },
-    { value: "500+", label: "Active artists" },
     { value: "24/7", label: "Support available" }
   ];
 

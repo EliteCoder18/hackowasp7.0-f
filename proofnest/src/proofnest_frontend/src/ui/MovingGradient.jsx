@@ -51,7 +51,7 @@ export const MovingGradient = ({
     const animProps = getAnimationProperties();
 
     return (
-        <div className={`relative overflow-hidden ${className}`}>
+        <div className={`relative overflow-hidden flex items-center justify-center ${className}`}>
             {/* Base background layer */}
             <div className={`absolute inset-0 ${baseColor}/5`}></div>
 
@@ -105,7 +105,7 @@ export const MovingGradient = ({
             ))}
 
             {/* Content */}
-            <div className="relative z-10">
+            <div className="relative z-10 flex items-center justify-center w-full">
                 {children}
             </div>
         </div>

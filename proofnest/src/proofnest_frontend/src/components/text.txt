@@ -1,0 +1,68 @@
+const teamMembers = [
+    {
+      name: "Alex Johnson",
+      role: "Founder & CEO",
+      bio: "Blockchain innovator with 10+ years in digital rights management",
+      image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop"
+    },
+    {
+      name: "Sarah Chen",
+      role: "CTO",
+      bio: "Former Google engineer specializing in distributed systems and security",
+      image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&auto=format&fit=crop"
+    },
+    {
+      name: "Michael Rodriguez",
+      role: "Design Lead",
+      bio: "Award-winning UI/UX designer passionate about creative communities",
+      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop"
+    },
+    {
+      name: "Jasmine Patel",
+      role: "Blockchain Architect",
+      bio: "Smart contract specialist with background in digital art marketplace",
+      image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=200&auto=format&fit=crop"
+    }
+  ];
+
+
+
+
+        {/* Team section */}
+        <motion.div
+          className="mb-20"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+        >
+          <h2 className="text-3xl font-serif font-bold text-center text-gray-900 mb-4">Meet Our Team</h2>
+          <p className="text-center text-gray-600 max-w-2xl mx-auto mb-12">
+            Driven by passion and expertise, our diverse team is committed to revolutionizing content protection.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {teamMembers.map((member, index) => (
+              <motion.div
+                key={index}
+                className="bg-white/90 backdrop-blur-sm rounded-xl overflow-hidden shadow-lg border border-gray-100 group"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 + (index * 0.1) }}
+                whileHover={{ y: -8 }}
+              >
+                <div className="h-48 overflow-hidden">
+                  <img
+                    src={member.image}
+                    alt={member.name}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
+                </div>
+                <div className="p-5">
+                  <h3 className="text-xl font-bold text-gray-900">{member.name}</h3>
+                  <p className="text-indigo-600 font-medium text-sm mb-2">{member.role}</p>
+                  <p className="text-gray-600 text-sm">{member.bio}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
