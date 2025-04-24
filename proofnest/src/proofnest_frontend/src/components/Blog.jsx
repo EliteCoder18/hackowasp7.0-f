@@ -159,7 +159,7 @@ const Blog = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2">
                             <div className="h-64 md:h-auto overflow-hidden relative">
                                 <img
-                                    src="https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=1000&auto=format&fit=crop"
+                                    src= {img4}
                                     alt="Featured post"
                                     className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                                 />

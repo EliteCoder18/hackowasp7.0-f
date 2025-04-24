@@ -251,13 +251,7 @@ function Register() {
     }, 2000);
   };
 
-  // Filter files based on user
-  const userFiles = files.filter(file => {
-    return (
-      file.user === identity?.getPrincipal().toString() ||
-      (file.user.includes("2vxsx") && identity?.getPrincipal().toString().includes("l5jds"))
-    );
-  });
+  const userFiles = files
 
   // Get file icon based on content type
   const getFileIcon = (contentType) => {
@@ -410,9 +404,7 @@ function Register() {
             }}
             className="inline-flex items-center justify-center mb-4"
           >
-            <div className="bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 rounded-lg p-2 text-white">
-              <FaFingerprint className="h-6 w-6" />
-            </div>
+           
           </motion.div>
           <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-500 to-purple-600 text-transparent bg-clip-text">ProofNest</h2>
           <p className="text-sm text-gray-500 mt-1">Blockchain Content Verification</p>
@@ -495,7 +487,6 @@ function Register() {
 
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate text-gray-800">{file.name}</p>
-                        <p className="text-xs text-gray-500">Registered: {formatDate(file.timestamp)}</p>
                       </div>
 
                       <motion.button
