@@ -187,6 +187,14 @@ function Landing() {
     { value: "24/7", label: "Support available" }
   ];
 
+  // Generate particles for background constellation
+  const particles = [...Array(40)].map(() => ({
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    size: Math.random() * 3 + 1,
+    color: Math.random() > 0.6 ? "rgba(139, 92, 246, 0.6)" : "rgba(99, 102, 241, 0.5)"
+  }));
+
   // Stats counter animation
   useEffect(() => {
     const interval = setInterval(() => {
@@ -245,6 +253,62 @@ function Landing() {
               }
             }}
           />
+        </div>
+
+        {/* Constellation particles */}
+        <div className="absolute select-none inset-0 overflow-hidden">
+          <svg className="absolute w-full h-full">
+            {particles.map((particle, index) => (
+              <motion.circle
+                key={index}
+                cx={`${particle.x}%`}
+                cy={`${particle.y}%`}
+                r={particle.size}
+                fill={particle.color}
+                animate={{
+                  opacity: [0.4, 1, 0.4],
+                  r: [particle.size, particle.size + 1, particle.size]
+                }}
+                transition={{
+                  duration: 3 + Math.random() * 5,
+                  repeat: Infinity,
+                  delay: Math.random() * 2
+                }}
+              />
+            ))}
+
+            {/* Connecting lines between nearby particles */}
+            {particles.map((particle, idx) => {
+              return particles
+                .slice(idx + 1)
+                .filter(p => {
+                  const distance = Math.sqrt(
+                    Math.pow(p.x - particle.x, 2) + Math.pow(p.y - particle.y, 2)
+                  );
+                  return distance < 20; // Only connect nearby particles
+                })
+                .map((p, lineIdx) => (
+                  <motion.line
+                    key={`line-${idx}-${lineIdx}`}
+                    x1={`${particle.x}%`}
+                    y1={`${particle.y}%`}
+                    x2={`${p.x}%`}
+                    y2={`${p.y}%`}
+                    strokeWidth="0.5"
+                    stroke="rgba(139, 92, 246, 0.2)"
+                    animate={{
+                      opacity: [0.1, 0.3, 0.1],
+                      strokeWidth: ["0.5px", "1px", "0.5px"]
+                    }}
+                    transition={{
+                      duration: 4,
+                      repeat: Infinity,
+                      repeatType: "reverse"
+                    }}
+                  />
+                ));
+            })}
+          </svg>
         </div>
 
         {/* Content */}
